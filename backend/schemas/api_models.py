@@ -50,6 +50,7 @@ class AnalyzeRiskRequest(BaseModel):
     document_id: str
     document_text: str
     contract_type: str
+    user_context: Optional[str] = None
 
 class Quad(BaseModel):
     ul: List[float]

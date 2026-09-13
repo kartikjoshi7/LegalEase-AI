@@ -26,7 +26,8 @@ async def analyze_risk(request_data: AnalyzeRiskRequest, request: Request):
     # 1. Send the text to Gemini
     llm_output = await analyze_document_risk(
         document_text=request_data.document_text,
-        contract_type=request_data.contract_type
+        contract_type=request_data.contract_type,
+        user_context=request_data.user_context
     )
     
     # 2. Map coordinates for each flagged clause using PyMuPDF

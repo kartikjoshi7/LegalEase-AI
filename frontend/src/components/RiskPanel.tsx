@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { 
   AlertTriangle, 
   ShieldAlert, 
@@ -9,14 +10,15 @@ import {
   ChevronUp, 
   Copy, 
   CheckCircle2,
-  Download
+  Download,
+  BarChart3,
+  List
 } from 'lucide-react';
 import { 
   Radar, 
   RadarChart, 
   PolarGrid, 
   PolarAngleAxis, 
-  PolarRadiusAxis, 
   ResponsiveContainer 
 } from 'recharts';
 
@@ -28,7 +30,7 @@ interface ClauseRisk {
   counter_draft?: string;
 }
 
-interface RiskSidebarProps {
+interface RiskPanelProps {
   fairnessScore: number | null;
   executiveSummary: string;
   flaggedClauses: ClauseRisk[];
@@ -36,9 +38,11 @@ interface RiskSidebarProps {
   setHoveredClauseId: (id: string | null) => void;
 }
 
-export default function RiskSidebar({ fairnessScore, executiveSummary, flaggedClauses, hoveredClauseId, setHoveredClauseId }: RiskSidebarProps) {
+export default function RiskPanel({ fairnessScore, executiveSummary, flaggedClauses, hoveredClauseId, setHoveredClauseId }: RiskPanelProps) {
+  const [activeTab, setActiveTab] = useState<'risks' | 'analytics'>('risks');
   const [expandedCards, setExpandedCards] = useState<Record<number, boolean>>({});
   const [copiedId, setCopiedId] = useState<number | null>(null);
+  const navigate = useNavigate();
 
   const toggleCard = (idx: number) => {
     setExpandedCards(prev => ({ ...prev, [idx]: !prev[idx] }));
@@ -68,101 +72,97 @@ export default function RiskSidebar({ fairnessScore, executiveSummary, flaggedCl
     }
   };
 
-  // Compute Radar Chart Data dynamically based on flagged clauses
   const getRadarData = () => {
     if (!flaggedClauses.length) return [];
-    
     const counts: Record<string, number> = {
-      'Indemnification': 0,
-      'Arbitration': 0,
-      'Liability': 0,
-      'IP': 0,
-      'Other': 0
+      'Indemnification': 0, 'Arbitration': 0, 'Liability': 0, 'IP': 0, 'Other': 0
     };
-
     flaggedClauses.forEach(clause => {
       const type = counts[clause.clause_type] !== undefined ? clause.clause_type : 'Other';
       const weight = clause.severity === 'Critical' ? 3 : clause.severity === 'High' ? 2 : 1;
       counts[type] += weight;
     });
-
     return Object.keys(counts).map(key => ({
       subject: key,
-      A: counts[key] + 1, // Add baseline so empty radar still shows shape
+      A: counts[key] + 1, // baseline
       fullMark: 10,
     }));
   };
 
-  const handleExport = async () => {
-    alert("Export Dossier endpoint triggered! (Simulated download)");
-    // Real implementation would hit /api/v1/export/dossier
-  };
+  if (fairnessScore === null) {
+    return (
+      <div className="flex-1 flex items-center justify-center text-slate-400 text-sm italic">
+        Awaiting document analysis...
+      </div>
+    );
+  }
 
   return (
     <div className="h-full flex flex-col bg-white/40">
       
-      {/* Header & Metrics */}
-      <div className="p-6 border-b border-slate-200/50 bg-white/60 backdrop-blur-md shrink-0">
-        <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2 mb-6">
-          <ShieldAlert className="text-blue-600" /> Diagnostic Dashboard
-        </h2>
-        
-        {fairnessScore !== null ? (
-          <div className="flex flex-col gap-6">
-            {/* Topline Score */}
-            <div className="flex items-center justify-between bg-slate-50 p-4 rounded-2xl border border-slate-100 shadow-sm">
-              <span className="text-sm font-bold text-slate-500 uppercase tracking-widest">Fairness Score</span>
-              <div className="flex items-baseline gap-1">
-                <span className={`text-4xl font-black tracking-tighter ${fairnessScore > 70 ? 'text-emerald-500' : fairnessScore > 40 ? 'text-amber-500' : 'text-rose-600'}`}>
-                  {fairnessScore}
-                </span>
-                <span className="text-lg font-bold text-slate-400">/100</span>
-              </div>
-            </div>
-
-            {/* Radar Chart */}
-            <div className="h-48 w-full bg-white rounded-2xl border border-slate-100 shadow-sm p-2">
-              <ResponsiveContainer width="100%" height="100%">
-                <RadarChart cx="50%" cy="50%" outerRadius="70%" data={getRadarData()}>
-                  <PolarGrid stroke="#e2e8f0" />
-                  <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 10, fontWeight: 600 }} />
-                  <Radar name="Risks" dataKey="A" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.3} />
-                </RadarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        ) : (
-          <div className="h-32 flex items-center justify-center text-slate-400 text-sm italic">
-            Awaiting document analysis...
-          </div>
-        )}
+      {/* Header Tabs */}
+      <div className="p-4 border-b border-slate-200/50 bg-white/60 backdrop-blur-md shrink-0 flex gap-2">
+        <button 
+          onClick={() => setActiveTab('risks')}
+          className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg font-bold text-sm transition-all ${activeTab === 'risks' ? 'bg-white shadow-sm text-blue-600 border border-blue-100' : 'text-slate-500 hover:bg-white/50'}`}
+        >
+          <List className="w-4 h-4" /> Risk Heatmap
+        </button>
+        <button 
+          onClick={() => setActiveTab('analytics')}
+          className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg font-bold text-sm transition-all ${activeTab === 'analytics' ? 'bg-white shadow-sm text-blue-600 border border-blue-100' : 'text-slate-500 hover:bg-white/50'}`}
+        >
+          <BarChart3 className="w-4 h-4" /> Executive Analytics
+        </button>
       </div>
 
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto p-6 space-y-8 pb-32">
         
-        {/* Executive Summary */}
-        {executiveSummary && (
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="relative"
-          >
-            <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-400 to-indigo-600 rounded-l-xl" />
-            <div className="bg-white/80 p-5 rounded-xl rounded-l-none border border-l-0 border-slate-200/50 shadow-sm">
-              <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3">Executive Brief</h3>
-              <p className="text-sm text-slate-700 leading-relaxed font-medium">
-                {executiveSummary}
-              </p>
+        {activeTab === 'analytics' && (
+          <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
+            {/* Topline Score */}
+            <div className="flex items-center justify-between bg-white/80 p-6 rounded-2xl border border-slate-200/50 shadow-sm">
+              <span className="text-sm font-bold text-slate-500 uppercase tracking-widest">Fairness Score</span>
+              <div className="flex items-baseline gap-1">
+                <span className={`text-5xl font-black tracking-tighter ${fairnessScore > 70 ? 'text-emerald-500' : fairnessScore > 40 ? 'text-amber-500' : 'text-rose-600'}`}>
+                  {fairnessScore}
+                </span>
+                <span className="text-xl font-bold text-slate-400">/100</span>
+              </div>
             </div>
+
+            {/* Radar Chart */}
+            <div className="h-64 w-full bg-white/80 rounded-2xl border border-slate-200/50 shadow-sm p-4">
+              <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 text-center">Liability Vector Mapping</h3>
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart cx="50%" cy="50%" outerRadius="70%" data={getRadarData()}>
+                  <PolarGrid stroke="#e2e8f0" />
+                  <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 11, fontWeight: 600 }} />
+                  <Radar name="Risks" dataKey="A" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.3} />
+                </RadarChart>
+              </ResponsiveContainer>
+            </div>
+            
+            {/* Executive Summary */}
+            {executiveSummary && (
+              <div className="relative">
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-400 to-indigo-600 rounded-l-xl" />
+                <div className="bg-white/80 p-5 rounded-xl rounded-l-none border border-l-0 border-slate-200/50 shadow-sm">
+                  <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3">Executive Brief</h3>
+                  <p className="text-sm text-slate-700 leading-relaxed font-medium">
+                    {executiveSummary}
+                  </p>
+                </div>
+              </div>
+            )}
           </motion.div>
         )}
 
-        {/* Clauses List */}
-        {flaggedClauses.length > 0 && (
-          <div>
+        {activeTab === 'risks' && (
+          <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Identified Liabilities</h3>
+              <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Flagged Clauses</h3>
               <span className="bg-slate-200 text-slate-600 text-xs font-bold px-2 py-0.5 rounded-full">{flaggedClauses.length}</span>
             </div>
             
@@ -177,11 +177,7 @@ export default function RiskSidebar({ fairnessScore, executiveSummary, flaggedCl
                   onMouseLeave={() => setHoveredClauseId(null)}
                   className={`rounded-2xl border transition-all duration-300 ${getSeverityColor(clause.severity)} ${hoveredClauseId === idx.toString() ? 'ring-2 ring-blue-400 ring-offset-2 shadow-lg -translate-y-1' : 'shadow-sm hover:shadow-md'}`}
                 >
-                  {/* Card Header (Clickable) */}
-                  <div 
-                    className="p-4 cursor-pointer flex items-start gap-3"
-                    onClick={() => toggleCard(idx)}
-                  >
+                  <div className="p-4 cursor-pointer flex items-start gap-3" onClick={() => toggleCard(idx)}>
                     <div className="mt-0.5 shrink-0 bg-white p-1.5 rounded-lg shadow-sm">
                       {getSeverityIcon(clause.severity)}
                     </div>
@@ -190,17 +186,12 @@ export default function RiskSidebar({ fairnessScore, executiveSummary, flaggedCl
                         <span className="inline-block px-2 py-0.5 rounded-md text-[10px] font-black tracking-wider uppercase bg-white/80 text-slate-700 shadow-sm">
                           {clause.clause_type}
                         </span>
-                        {expandedCards[idx] ? (
-                          <ChevronUp className="w-4 h-4 text-slate-400" />
-                        ) : (
-                          <ChevronDown className="w-4 h-4 text-slate-400" />
-                        )}
+                        {expandedCards[idx] ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
                       </div>
                       <h4 className="font-bold text-slate-900 text-sm leading-tight">{clause.severity} Risk Detected</h4>
                     </div>
                   </div>
                   
-                  {/* Expandable Content */}
                   <AnimatePresence>
                     {expandedCards[idx] && (
                       <motion.div 
@@ -215,7 +206,7 @@ export default function RiskSidebar({ fairnessScore, executiveSummary, flaggedCl
                           </p>
                           
                           {clause.counter_draft && (
-                            <div className="bg-white/80 p-4 rounded-xl border border-blue-100 shadow-sm relative group">
+                            <div className="bg-white/80 p-4 rounded-xl border border-blue-100 shadow-sm group">
                               <div className="flex items-center justify-between mb-2">
                                 <span className="text-[10px] font-black text-blue-600 uppercase tracking-wider flex items-center gap-1.5">
                                   <ShieldAlert className="w-3 h-3" /> Auto-Draft Solution
@@ -240,22 +231,20 @@ export default function RiskSidebar({ fairnessScore, executiveSummary, flaggedCl
                 </motion.div>
               ))}
             </div>
-          </div>
+          </motion.div>
         )}
       </div>
 
       {/* Footer Export Action */}
-      {fairnessScore !== null && (
-        <div className="absolute bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-md border-t border-slate-200/50">
-          <button 
-            onClick={handleExport}
-            className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-xl active:scale-[0.98]"
-          >
-            <Download className="w-5 h-5" />
-            Export Attorney Dossier
-          </button>
-        </div>
-      )}
+      <div className="absolute bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-md border-t border-slate-200/50">
+        <button 
+          onClick={() => navigate('/dossier/latest')}
+          className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-xl active:scale-[0.98]"
+        >
+          <Download className="w-5 h-5" />
+          Preview Attorney Dossier
+        </button>
+      </div>
     </div>
   );
 }

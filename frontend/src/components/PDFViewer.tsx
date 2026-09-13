@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
+import { motion, AnimatePresence } from 'framer-motion';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
+import { useAppContext } from '../context/AppContext';
 
 // Set up the worker for react-pdf
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
@@ -10,67 +12,218 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 ).toString();
 
 interface PDFViewerProps {
-  pdfFile: File | string | null;
+  pdfFile: File | null;
+  hoveredClauseId: string | null;
 }
 
-export default function PDFViewer({ pdfFile }: PDFViewerProps) {
+export default function PDFViewer({ pdfFile, hoveredClauseId }: PDFViewerProps) {
   const [numPages, setNumPages] = useState<number>();
-  const [pageNumber, setPageNumber] = useState<number>(1);
+  const [isHovered, setIsHovered] = useState(false);
+  const { riskData } = useAppContext();
+  
+  const [highlightStyle, setHighlightStyle] = useState<React.CSSProperties | null>(null);
+  
+  // Dedicated ref for the scrollable viewport container
+  const scrollWrapperRef = useRef<HTMLDivElement>(null);
+  // Dedicated ref for the inner PDF wrapper (used for absolute positioning)
+  const pdfContainerRef = useRef<HTMLDivElement>(null);
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }): void {
     setNumPages(numPages);
   }
 
-  return (
-    <div className="flex-1 h-full bg-slate-200/50 flex flex-col items-center overflow-y-auto pt-8 pb-12 relative">
-      {pdfFile ? (
-        <div className="shadow-2xl bg-white rounded-lg overflow-hidden relative">
-          <Document file={pdfFile} onLoadSuccess={onDocumentLoadSuccess}>
-            <Page 
-              pageNumber={pageNumber} 
-              renderTextLayer={true}
-              renderAnnotationLayer={true}
-              className="max-w-full"
-            />
-          </Document>
-          
-          {/* Mock Geometry Overlay Scaffold */}
-          {/* In a real implementation, absolute positioned divs would map PyMuPDF quads to the DOM here */}
-          
-        </div>
-      ) : (
-        <div className="flex-1 flex flex-col items-center justify-center text-slate-400">
-          <div className="w-24 h-24 mb-6 rounded-2xl bg-slate-200/50 flex items-center justify-center border-2 border-dashed border-slate-300">
-            <svg className="w-10 h-10 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-          </div>
-          <p className="text-lg font-medium text-slate-500">No document selected</p>
-          <p className="text-sm mt-2">Upload a legal contract to begin auditing</p>
-        </div>
-      )}
+  const hoveredClause = hoveredClauseId && riskData?.flaggedClauses ? riskData.flaggedClauses[parseInt(hoveredClauseId)] : null;
+  const searchText = hoveredClause?.exact_quote;
 
-      {pdfFile && numPages && (
-        <div className="fixed bottom-6 bg-slate-900 text-white px-6 py-3 rounded-full shadow-xl flex items-center gap-4 text-sm font-medium z-50">
-          <button 
-            disabled={pageNumber <= 1}
-            onClick={() => setPageNumber(p => p - 1)}
-            className="disabled:opacity-50 hover:text-blue-400 transition-colors"
-          >
-            Previous
-          </button>
-          <span>
-            Page {pageNumber} of {numPages}
-          </span>
-          <button 
-            disabled={pageNumber >= numPages}
-            onClick={() => setPageNumber(p => p + 1)}
-            className="disabled:opacity-50 hover:text-blue-400 transition-colors"
-          >
-            Next
-          </button>
-        </div>
-      )}
+  // DOM Search and Semantic Word Clustering Logic
+  useEffect(() => {
+    if (!hoveredClauseId || !searchText || !pdfContainerRef.current || !scrollWrapperRef.current) {
+      setHighlightStyle(null);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      const textSpans = Array.from(document.querySelectorAll('.react-pdf__Page__textContent span'));
+      if (!textSpans.length) return;
+
+      // Aggressive Stop-Word Filter
+      const stopWords = new Set([
+        'the', 'and', 'is', 'in', 'to', 'of', 'for', 'a', 'an', 'or', 'with', 'as', 'by', 'on', 
+        'at', 'from', 'this', 'that', 'are', 'be', 'will', 'shall', 'hereto', 'party', 'parties', 
+        'whereas', 'any', 'all', 'such', 'not', 'no', 'it', 'its', 'under', 'agrees', 'agreement'
+      ]);
+
+      const normalizeAndFilter = (str: string) => {
+        return str.replace(/[^a-zA-Z0-9\s]/g, '')
+          .toLowerCase()
+          .split(/\s+/)
+          .filter(w => w.length > 2 && !stopWords.has(w));
+      };
+
+      const searchWords = normalizeAndFilter(searchText);
+      if (searchWords.length === 0) {
+        setHighlightStyle(null);
+        return;
+      }
+
+      // Map physical spans into an array of significant words
+      const pdfWords: { word: string, span: Element }[] = [];
+      textSpans.forEach(span => {
+        const text = span.textContent || "";
+        const words = text.replace(/[^a-zA-Z0-9\s]/g, '').toLowerCase().split(/\s+/);
+        words.forEach(w => {
+           if (w.length > 2 && !stopWords.has(w)) {
+              pdfWords.push({ word: w, span });
+           }
+        });
+      });
+
+      // Sliding Window Clustering
+      const uniqueSearchWords = new Set(searchWords);
+      const windowSize = Math.min(uniqueSearchWords.size * 3 + 10, 80); // Expand window to handle dense legal paragraphs
+      let maxDensity = 0;
+      let bestWindow: { start: number, end: number } | null = null;
+      
+      for (let i = 0; i < pdfWords.length; i++) {
+         const endIdx = Math.min(i + windowSize, pdfWords.length);
+         const windowSlice = pdfWords.slice(i, endIdx);
+         
+         const matchedWords = new Set<string>();
+         
+         for (const item of windowSlice) {
+            if (uniqueSearchWords.has(item.word)) {
+               matchedWords.add(item.word);
+            }
+         }
+         
+         // Density is the ratio of unique search words found in this window
+         const density = matchedWords.size / uniqueSearchWords.size;
+         
+         if (density > maxDensity) {
+            maxDensity = density;
+            bestWindow = { start: i, end: endIdx - 1 };
+         }
+         
+         if (density >= 1.0) break; // Perfect match found
+      }
+
+      // Confidence Threshold Guardrail (Lowered slightly to 25% for extreme LLM hallucinations)
+      if (maxDensity >= 0.25 && bestWindow) {
+         const spansInWindow = new Set<Element>();
+         for (let i = bestWindow.start; i <= bestWindow.end; i++) {
+             spansInWindow.add(pdfWords[i].span);
+         }
+         
+         let minTop = Infinity, minLeft = Infinity, maxBottom = -Infinity, maxRight = -Infinity;
+         
+         spansInWindow.forEach(span => {
+            const rect = span.getBoundingClientRect();
+            // Ensure span is visible
+            if (rect.width > 0 && rect.height > 0) {
+               if (minTop === Infinity) {
+                   minTop = rect.top;
+                   maxBottom = rect.bottom;
+                   minLeft = rect.left;
+                   maxRight = rect.right;
+               } else if (Math.abs(rect.top - minTop) < 400) { // Cluster constraint: max 400px height for a clause
+                   minTop = Math.min(minTop, rect.top);
+                   minLeft = Math.min(minLeft, rect.left);
+                   maxBottom = Math.max(maxBottom, rect.bottom);
+                   maxRight = Math.max(maxRight, rect.right);
+               }
+            }
+         });
+         
+         const innerWrapper = pdfContainerRef.current;
+         const scrollWrapper = scrollWrapperRef.current;
+         
+         if (innerWrapper && scrollWrapper && minTop !== Infinity) {
+            const innerRect = innerWrapper.getBoundingClientRect();
+            
+            // Calculate absolute position inside the inner relative wrapper
+            const top = minTop - innerRect.top;
+            const left = minLeft - innerRect.left;
+            const width = maxRight - minLeft;
+            const height = maxBottom - minTop;
+            
+            setHighlightStyle({
+              top: `${top - 8}px`,
+              left: `${left - 8}px`,
+              width: `${width + 16}px`,
+              height: `${height + 16}px`,
+            });
+            
+            // Calculate exact scroll target for the outer overflow container
+            const scrollRect = scrollWrapper.getBoundingClientRect();
+            const absoluteScrollTop = (minTop - scrollRect.top) + scrollWrapper.scrollTop;
+            const viewportHeight = scrollWrapper.clientHeight;
+            
+            const targetScrollTop = absoluteScrollTop - (viewportHeight / 2) + (height / 2);
+            
+            scrollWrapper.scrollTo({
+               top: targetScrollTop,
+               behavior: 'smooth'
+            });
+         } else {
+           setHighlightStyle(null);
+         }
+      } else {
+         // Fail gracefully if threshold not met
+         setHighlightStyle(null);
+      }
+    }, 400); // 400ms delay ensures react-pdf text layer rendering
+
+    return () => clearTimeout(timer);
+  }, [hoveredClauseId, searchText]);
+
+  if (!pdfFile) return null;
+
+  return (
+    <div 
+      ref={scrollWrapperRef}
+      className="flex-1 h-full flex flex-col items-center overflow-y-auto pt-6 pb-20 relative scroll-smooth"
+    >
+      <div 
+        ref={pdfContainerRef}
+        className="shadow-2xl bg-slate-100 p-4 relative transition-all duration-500 ease-out"
+        style={{ 
+          borderRadius: '12px',
+          boxShadow: hoveredClauseId ? '0 25px 50px -12px rgba(59, 130, 246, 0.25)' : '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+          transform: hoveredClauseId ? 'scale(1.01)' : 'scale(1)'
+        }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <Document file={pdfFile} onLoadSuccess={onDocumentLoadSuccess}>
+          {Array.from(new Array(numPages || 0), (el, index) => (
+            <div key={`page_${index + 1}`} className="mb-6 bg-white shadow-md border border-slate-200">
+              <Page 
+                pageNumber={index + 1} 
+                renderTextLayer={true}
+                renderAnnotationLayer={true}
+                className="max-w-full"
+                width={600}
+              />
+            </div>
+          ))}
+        </Document>
+
+        {/* Dynamic Highlighting Box */}
+        <AnimatePresence>
+          {highlightStyle && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.3, ease: 'easeOut' }}
+              className="absolute pointer-events-none z-50 transition-all duration-300 ease-out"
+              style={highlightStyle}
+            >
+              <div className="absolute inset-0 bg-blue-400/40 border-2 border-blue-500 rounded mix-blend-multiply shadow-[0_0_15px_rgba(59,130,246,0.3)]" />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

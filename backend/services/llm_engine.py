@@ -18,7 +18,7 @@ def get_gemini_client():
         client = genai.Client(api_key=api_key)
     return client
 
-async def analyze_document_risk(document_text: str, contract_type: str) -> RiskAnalysisLLMOutput:
+async def analyze_document_risk(document_text: str, contract_type: str, user_context: str | None = None) -> RiskAnalysisLLMOutput:
     """
     Sends the scrubbed document to Gemini for risk analysis.
     Enforces the RiskAnalysisLLMOutput Pydantic schema for structured JSON.
@@ -43,9 +43,19 @@ async def analyze_document_risk(document_text: str, contract_type: str) -> RiskA
 
     gemini_client = get_gemini_client()
     
+    context_directive = ""
+    if user_context:
+        context_directive = f"""
+    CRITICAL INSTRUCTION: Analyze this contract from the explicit perspective of the user: "{user_context}".
+    The Fairness Score, Executive Summary, and Auto-Draft Solutions MUST be aggressively tailored to protect this specific party's interests. 
+    If a clause harms the user's stated interests, flag it as High/Critical. 
+    Counter-drafts must neutralize the risk for this specific user.
+    """
+
     prompt = f"""
     You are an expert institutional-grade legal document auditor.
     Analyze the following {contract_type} and identify asymmetrical liabilities, missing consumer protections, and critical risks.
+    {context_directive}
     Return the EXACT quote for any flagged clause so it can be located in the original PDF.
     If a clause's severity is High or Critical, provide a market-standard counter_draft.
     
