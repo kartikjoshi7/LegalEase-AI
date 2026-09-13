@@ -1,0 +1,104 @@
+# ========================================
+# 1. Environment & Secrets (SECURITY.md)
+# ========================================
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+*.env
+serviceAccountKey.json
+firebase-credentials.json
+*.pem
+*.key
+
+# ========================================
+# 2. Python & FastAPI Backend
+# ========================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+venv/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+
+# ========================================
+# 3. Node.js & React Frontend
+# ========================================
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn-debug.log
+.pnp
+.pnp.js
+build/
+dist/
+.next/
+out/
+coverage/
+
+# ========================================
+# 4. Heavy Data & Documents (10MB Limit Guard)
+# ========================================
+# Block all PDFs, ML models, and Vector DB state
+*.pdf
+*.docx
+*.db
+*.sqlite
+*.sqlite3
+chroma/
+chroma_db/
+*.pkl
+*.h5
+*.onnx
+*.safetensors
+dataset/
+tmp/
+temp/
+
+# ========================================
+# 5. OS & IDE Specific
+# ========================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ========================================
+# 6. Testing & Logs
+# ========================================
+.pytest_cache/
+.tox/
+.coverage
+htmlcov/
+*.log
