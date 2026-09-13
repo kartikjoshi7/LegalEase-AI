@@ -23,6 +23,24 @@ async def analyze_document_risk(document_text: str, contract_type: str) -> RiskA
     Sends the scrubbed document to Gemini for risk analysis.
     Enforces the RiskAnalysisLLMOutput Pydantic schema for structured JSON.
     """
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if not api_key:
+        print("WARNING: GEMINI_API_KEY missing. Returning mock data for UI testing.")
+        # Return mock data matching the schema so the UI doesn't crash during testing
+        return RiskAnalysisLLMOutput(
+            fairness_score=42,
+            executive_summary="[MOCK MODE - NO API KEY] This document contains significant asymmetrical liabilities heavily favoring the landlord. We recommend reviewing the arbitration and indemnification clauses before signing.",
+            flagged_clauses=[
+                {
+                    "clause_type": "Indemnification",
+                    "severity": "Critical",
+                    "exact_quote": "Tenant agrees to indemnify and hold Landlord harmless",
+                    "plain_english": "You take full financial responsibility for any lawsuits on the property, even if it's the landlord's fault.",
+                    "counter_draft": "Tenant indemnifies Landlord only for gross negligence or intentional misconduct."
+                }
+            ]
+        )
+
     gemini_client = get_gemini_client()
     
     prompt = f"""
@@ -30,6 +48,21 @@ async def analyze_document_risk(document_text: str, contract_type: str) -> RiskA
     Analyze the following {contract_type} and identify asymmetrical liabilities, missing consumer protections, and critical risks.
     Return the EXACT quote for any flagged clause so it can be located in the original PDF.
     If a clause's severity is High or Critical, provide a market-standard counter_draft.
+    
+    You MUST return the output as a raw JSON object with the following exact structure:
+    {{
+        "fairness_score": int (0-100),
+        "executive_summary": "string",
+        "flagged_clauses": [
+            {{
+                "clause_type": "Indemnification" | "Arbitration" | "Liability" | "IP" | "Other",
+                "exact_quote": "string",
+                "plain_english": "string",
+                "severity": "Low" | "Medium" | "High" | "Critical",
+                "counter_draft": "string" // optional
+            }}
+        ]
+    }}
     
     <document_under_review>
     {document_text}
@@ -42,7 +75,6 @@ async def analyze_document_risk(document_text: str, contract_type: str) -> RiskA
             contents=prompt,
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",
-                response_schema=RiskAnalysisLLMOutput,
                 temperature=0.1, # Low temp for deterministic legal output
             ),
         )
@@ -52,11 +84,14 @@ async def analyze_document_risk(document_text: str, contract_type: str) -> RiskA
         return result
         
     except Exception as e:
+        import traceback
+        traceback.print_exc()
+        print(f"ACTUAL GEMINI ERROR: {e}")
         raise HTTPException(
             status_code=502,
             detail={
                 "error": "LLM_GENERATION_FAILED",
-                "message": "The generative AI engine returned an unstructured or malformed response that violates the JSON schema."
+                "message": f"The generative AI engine failed: {str(e)}"
             }
         )
 
@@ -70,6 +105,12 @@ async def simplify_legal_jargon(target_text: str) -> SimplificationLLMOutput:
     Translate the following legal clause into plain English at an 8th-grade reading level.
     Also indicate if this clause is standard for typical contracts.
     
+    You MUST return the output as a raw JSON object with the following exact structure:
+    {{
+        "plain_english_translation": "string",
+        "is_standard": boolean
+    }}
+    
     <clause>
     {target_text}
     </clause>
@@ -81,7 +122,6 @@ async def simplify_legal_jargon(target_text: str) -> SimplificationLLMOutput:
             contents=prompt,
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",
-                response_schema=SimplificationLLMOutput,
                 temperature=0.2,
             ),
         )

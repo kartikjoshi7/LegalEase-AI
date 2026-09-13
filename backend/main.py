@@ -1,9 +1,12 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-from routers import health, analyze
+from routers import health, analyze, auth, export
 from services.vector_store import initialize_vector_store
 
 # Initialize Rate Limiter (Token Bucket for Gemini Quota Protection)
@@ -43,3 +46,5 @@ async def startup_event():
 # Include Routers
 app.include_router(health.router, prefix="/api/v1")
 app.include_router(analyze.router, prefix="/api/v1")
+app.include_router(auth.router, prefix="/api/v1")
+app.include_router(export.router, prefix="/api/v1")

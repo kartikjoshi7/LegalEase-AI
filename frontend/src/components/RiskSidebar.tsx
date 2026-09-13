@@ -35,17 +35,24 @@ export default function RiskSidebar({ fairnessScore, executiveSummary, flaggedCl
   };
 
   return (
-    <div className="w-1/3 min-w-[400px] h-full bg-white border-l border-slate-200 flex flex-col shadow-xl z-10 overflow-hidden">
+    <div 
+      className="w-1/3 min-w-[400px] h-full bg-white border-l border-slate-200 flex flex-col shadow-xl z-10 overflow-hidden"
+      role="complementary" 
+      aria-label="Risk Analysis Results"
+    >
       {/* Header */}
       <div className="p-6 border-b border-slate-100 bg-slate-50">
         <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-          <ShieldAlert className="text-blue-600" /> Legal Risk Analysis
+          <ShieldAlert className="text-blue-600" aria-hidden="true" /> Legal Risk Analysis
         </h2>
         
         {fairnessScore !== null && (
           <div className="mt-4 flex items-center justify-between">
             <span className="text-sm font-medium text-slate-500 uppercase tracking-wider">Fairness Score</span>
-            <div className={`text-2xl font-black ${fairnessScore > 70 ? 'text-green-600' : fairnessScore > 40 ? 'text-orange-500' : 'text-red-600'}`}>
+            <div 
+              className={`text-2xl font-black ${fairnessScore > 70 ? 'text-green-600' : fairnessScore > 40 ? 'text-orange-500' : 'text-red-600'}`}
+              aria-label={`Score is ${fairnessScore} out of 100`}
+            >
               {fairnessScore}/100
             </div>
           </div>
@@ -53,13 +60,13 @@ export default function RiskSidebar({ fairnessScore, executiveSummary, flaggedCl
       </div>
 
       {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="flex-1 overflow-y-auto p-6" role="region" aria-label="Analysis Details">
         
         {/* Executive Summary */}
         {executiveSummary && (
           <div className="mb-8">
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Executive Summary</h3>
-            <p className="text-sm text-slate-700 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100">
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3" id="exec-summary-heading">Executive Summary</h3>
+            <p className="text-sm text-slate-700 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100" aria-labelledby="exec-summary-heading">
               {executiveSummary}
             </p>
           </div>
@@ -70,13 +77,13 @@ export default function RiskSidebar({ fairnessScore, executiveSummary, flaggedCl
           <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Flagged Liabilities ({flaggedClauses.length})</h3>
           
           {flaggedClauses.length === 0 ? (
-            <div className="text-center py-10 text-slate-400 text-sm">
+            <div className="text-center py-10 text-slate-400 text-sm" role="status">
               No risks identified in this document.
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-4" role="list">
               {flaggedClauses.map((clause, idx) => (
-                <div key={idx} className={`p-4 rounded-xl border ${getSeverityColor(clause.severity)} transition-all hover:shadow-md cursor-pointer`}>
+                <div key={idx} role="listitem" tabIndex={0} className={`p-4 rounded-xl border ${getSeverityColor(clause.severity)} transition-all hover:shadow-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500`}>
                   <div className="flex items-start gap-3 mb-2">
                     <div className="mt-0.5">{getSeverityIcon(clause.severity)}</div>
                     <div>
