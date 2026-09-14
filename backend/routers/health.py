@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 router = APIRouter(tags=["Health"])
 
 @router.get("/health")
+@router.head("/health")
 async def health_check():
     """
     Keep-alive endpoint pinged every 5 minutes by the React frontend 
