@@ -15,6 +15,36 @@ export const apiClient = {
     return response.json();
   },
 
+  simplifyJargon: async (documentId: string, text: string) => {
+    const response = await fetch(`${API_BASE_URL}/analyze/simplify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ document_id: documentId, target_text: text }),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status}`);
+    }
+    
+    return response.json();
+  },
+
+  askQuestion: async (documentId: string, documentText: string, question: string) => {
+    const response = await fetch(`${API_BASE_URL}/analyze/ask`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ document_id: documentId, document_text: documentText, question }),
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      const errorMsg = errorData?.detail?.message || errorData?.message || `API Error: ${response.status}`;
+      throw new Error(errorMsg);
+    }
+    
+    return response.json();
+  },
+
   async post(endpoint: string, body: any) {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'POST',

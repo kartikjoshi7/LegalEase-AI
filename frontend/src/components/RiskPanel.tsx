@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { useAppContext } from '../context/AppContext';
 import { 
   AlertTriangle, 
   ShieldAlert, 
@@ -12,7 +13,11 @@ import {
   CheckCircle2,
   Download,
   BarChart3,
-  List
+  List,
+  MessageSquare,
+  Send,
+  Loader2,
+  Zap
 } from 'lucide-react';
 import { 
   Radar, 
@@ -39,10 +44,35 @@ interface RiskPanelProps {
 }
 
 export default function RiskPanel({ fairnessScore, executiveSummary, flaggedClauses, hoveredClauseId, setHoveredClauseId }: RiskPanelProps) {
-  const [activeTab, setActiveTab] = useState<'risks' | 'analytics'>('risks');
+  const [activeTab, setActiveTab] = useState<'risks' | 'analytics' | 'ask'>('risks');
   const [expandedCards, setExpandedCards] = useState<Record<number, boolean>>({});
   const [copiedId, setCopiedId] = useState<number | null>(null);
+  
+  // Q&A State
+  const [question, setQuestion] = useState("");
+  const [messages, setMessages] = useState<{role: 'user' | 'ai', content: string}[]>([]);
+  const [isAsking, setIsAsking] = useState(false);
+  const { documentText } = useAppContext();
+  
   const navigate = useNavigate();
+
+  const handleAskQuestion = async () => {
+    if (!question.trim() || !documentText) return;
+    
+    const userMessage = question;
+    setQuestion("");
+    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    setIsAsking(true);
+    
+    try {
+      const response = await import('../api/client').then(m => m.apiClient.askQuestion("doc_id", documentText, userMessage));
+      setMessages(prev => [...prev, { role: 'ai', content: response.answer }]);
+    } catch (err: any) {
+      setMessages(prev => [...prev, { role: 'ai', content: err.message || "Sorry, I encountered an error while analyzing the document." }]);
+    } finally {
+      setIsAsking(false);
+    }
+  };
 
   const toggleCard = (idx: number) => {
     setExpandedCards(prev => ({ ...prev, [idx]: !prev[idx] }));
@@ -104,20 +134,26 @@ export default function RiskPanel({ fairnessScore, executiveSummary, flaggedClau
       <div className="p-4 border-b border-slate-200/50 bg-white/60 backdrop-blur-md shrink-0 flex gap-2">
         <button 
           onClick={() => setActiveTab('risks')}
-          className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg font-bold text-sm transition-all ${activeTab === 'risks' ? 'bg-white shadow-sm text-blue-600 border border-blue-100' : 'text-slate-500 hover:bg-white/50'}`}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg font-bold text-[11px] uppercase tracking-wider transition-all ${activeTab === 'risks' ? 'bg-white shadow-sm text-blue-600 border border-blue-100' : 'text-slate-500 hover:bg-white/50'}`}
         >
-          <List className="w-4 h-4" /> Risk Heatmap
+          <List className="w-3.5 h-3.5" /> Heatmap
         </button>
         <button 
           onClick={() => setActiveTab('analytics')}
-          className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg font-bold text-sm transition-all ${activeTab === 'analytics' ? 'bg-white shadow-sm text-blue-600 border border-blue-100' : 'text-slate-500 hover:bg-white/50'}`}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg font-bold text-[11px] uppercase tracking-wider transition-all ${activeTab === 'analytics' ? 'bg-white shadow-sm text-blue-600 border border-blue-100' : 'text-slate-500 hover:bg-white/50'}`}
         >
-          <BarChart3 className="w-4 h-4" /> Executive Analytics
+          <BarChart3 className="w-3.5 h-3.5" /> Analytics
+        </button>
+        <button 
+          onClick={() => setActiveTab('ask')}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg font-bold text-[11px] uppercase tracking-wider transition-all ${activeTab === 'ask' ? 'bg-white shadow-sm text-indigo-600 border border-indigo-100' : 'text-slate-500 hover:bg-white/50'}`}
+        >
+          <MessageSquare className="w-3.5 h-3.5" /> Ask AI
         </button>
       </div>
 
       {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-8 pb-32">
+      <div className="flex-1 overflow-y-auto p-6 space-y-8">
         
         {activeTab === 'analytics' && (
           <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
@@ -233,10 +269,109 @@ export default function RiskPanel({ fairnessScore, executiveSummary, flaggedClau
             </div>
           </motion.div>
         )}
+        
+        {activeTab === 'ask' && (
+          <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} className="h-full flex flex-col -mt-4">
+            
+            {/* Minimal Header */}
+            <div className="bg-white/60 p-4 rounded-xl border border-slate-200/50 shadow-sm mb-4 flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-black text-slate-800 flex items-center gap-2">
+                  <MessageSquare className="w-4 h-4 text-indigo-500" /> Document Q&A
+                </h3>
+                <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                  Strictly scoped to the uploaded document.
+                </p>
+              </div>
+              <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center border border-indigo-100">
+                <Zap className="w-4 h-4 text-indigo-600" />
+              </div>
+            </div>
+            
+            {/* Chat History */}
+            <div className="flex-1 overflow-y-auto mb-4 min-h-[250px] space-y-4 pr-2 custom-scrollbar flex flex-col">
+              {messages.length === 0 ? (
+                <div className="flex-1 flex flex-col items-center justify-center text-center p-6 opacity-60">
+                  <MessageSquare className="w-10 h-10 text-slate-300 mb-3" />
+                  <p className="text-sm font-bold text-slate-500">Ask a question about the contract</p>
+                  <p className="text-xs text-slate-400 mt-1 max-w-[200px]">e.g., "Can the landlord evict me without notice?"</p>
+                </div>
+              ) : (
+                <AnimatePresence initial={false}>
+                  {messages.map((msg, idx) => (
+                    <motion.div 
+                      key={idx}
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      className={`flex flex-col max-w-[85%] ${msg.role === 'user' ? 'self-end items-end' : 'self-start items-start'}`}
+                    >
+                      {msg.role === 'ai' && (
+                        <div className="flex items-center gap-1.5 mb-1.5 ml-1">
+                          <Zap className="w-3 h-3 text-indigo-500" />
+                          <span className="text-[9px] font-black uppercase tracking-widest text-indigo-500">LegalEase AI</span>
+                        </div>
+                      )}
+                      
+                      <div className={`p-3.5 rounded-2xl text-sm font-medium leading-relaxed shadow-sm ${
+                        msg.role === 'user' 
+                          ? 'bg-indigo-600 text-white rounded-tr-sm' 
+                          : 'bg-white border border-slate-200/60 text-slate-700 rounded-tl-sm'
+                      }`}>
+                        {msg.content}
+                      </div>
+                    </motion.div>
+                  ))}
+                  {isAsking && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="self-start max-w-[85%] flex flex-col items-start"
+                    >
+                      <div className="flex items-center gap-1.5 mb-1.5 ml-1">
+                        <Zap className="w-3 h-3 text-indigo-500" />
+                        <span className="text-[9px] font-black uppercase tracking-widest text-indigo-500">LegalEase AI</span>
+                      </div>
+                      <div className="p-4 rounded-2xl bg-white border border-slate-200/60 rounded-tl-sm shadow-sm flex items-center gap-2">
+                        <Loader2 className="w-4 h-4 text-indigo-400 animate-spin" />
+                        <span className="text-xs text-slate-400 font-bold">Analyzing document...</span>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              )}
+            </div>
+            
+            {/* Input Area */}
+            <div className="shrink-0 pt-4 border-t border-slate-200/50 bg-transparent -mx-6 px-6 -mb-6 pb-0">
+              <div className="relative">
+                <textarea
+                  value={question}
+                  onChange={(e) => setQuestion(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleAskQuestion();
+                    }
+                  }}
+                  placeholder="Ask a question..."
+                  className="w-full bg-white border border-slate-200 rounded-2xl py-3.5 pl-4 pr-12 text-sm text-slate-700 font-medium placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none shadow-sm h-[52px] leading-tight"
+                  disabled={isAsking}
+                />
+                <button
+                  onClick={handleAskQuestion}
+                  disabled={isAsking || !question.trim()}
+                  className="absolute right-1.5 top-1.5 bottom-1.5 w-[40px] bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50 disabled:hover:bg-indigo-600 transition-colors flex items-center justify-center shadow-sm"
+                >
+                  <Send className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
       </div>
 
       {/* Footer Export Action */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-md border-t border-slate-200/50">
+      <div className="shrink-0 p-4 bg-white/90 backdrop-blur-md border-t border-slate-200/50">
         <button 
           onClick={() => navigate('/dossier/latest')}
           className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-xl active:scale-[0.98]"

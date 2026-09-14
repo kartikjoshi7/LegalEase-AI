@@ -96,12 +96,18 @@ async def analyze_document_risk(document_text: str, contract_type: str, user_con
     except Exception as e:
         import traceback
         traceback.print_exc()
-        print(f"ACTUAL GEMINI ERROR: {e}")
+        error_msg = str(e)
+        print(f"ACTUAL GEMINI ERROR: {error_msg}")
+        
+        friendly_message = "The generative AI engine failed to analyze the document."
+        if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg or "quota" in error_msg.lower():
+            friendly_message = "Our AI is currently experiencing high traffic. Please wait a moment and try again."
+            
         raise HTTPException(
             status_code=502,
             detail={
                 "error": "LLM_GENERATION_FAILED",
-                "message": f"The generative AI engine failed: {str(e)}"
+                "message": friendly_message
             }
         )
 
@@ -140,10 +146,73 @@ async def simplify_legal_jargon(target_text: str) -> SimplificationLLMOutput:
         return result
         
     except Exception as e:
+        error_msg = str(e)
+        friendly_message = "The generative AI engine returned an unstructured or malformed response."
+        if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg or "quota" in error_msg.lower():
+            friendly_message = "Our AI is currently experiencing high traffic. Please wait a moment and try again."
+            
         raise HTTPException(
             status_code=502,
             detail={
                 "error": "LLM_GENERATION_FAILED",
-                "message": "The generative AI engine returned an unstructured or malformed response that violates the JSON schema."
+                "message": friendly_message
             }
         )
+
+async def answer_document_question(document_text: str, question: str) -> str:
+    """
+    Answers a user's question STRICTLY based on the provided document text.
+    """
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if not api_key:
+        return "[MOCK MODE - NO API KEY] This is a mocked answer for UI testing."
+
+    gemini_client = get_gemini_client()
+    
+    prompt = f"""
+    You are an expert legal assistant. Your task is to answer the user's question based strictly on the provided legal document.
+    
+    CRITICAL INSTRUCTIONS TO PREVENT MISUSE:
+    1. You MUST ONLY answer questions that are directly related to the provided document.
+    2. If the user asks a general question, a coding question, or anything unrelated to the document, you must reply: "I can only answer questions related to the uploaded document."
+    3. If the document does not contain the answer, state clearly: "The uploaded document does not specify or contain the answer to this question."
+    4. Provide your answer in clear, concise plain English. Do not provide formal legal advice.
+    
+    <user_question>
+    {question}
+    </user_question>
+    
+    <document>
+    {document_text}
+    </document>
+    """
+    
+    try:
+        response = gemini_client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                temperature=0.1,
+            ),
+        )
+        
+        return response.text
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        error_msg = str(e)
+        print(f"ACTUAL GEMINI ERROR: {error_msg}")
+        
+        friendly_message = "I'm sorry, I encountered an unexpected error while answering your question."
+        if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg or "quota" in error_msg.lower():
+            friendly_message = "I'm currently receiving too many requests. Please wait a few seconds and ask again!"
+            
+        raise HTTPException(
+            status_code=502,
+            detail={
+                "error": "LLM_GENERATION_FAILED",
+                "message": friendly_message
+            }
+        )
+

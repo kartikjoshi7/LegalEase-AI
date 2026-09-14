@@ -4,11 +4,13 @@ from schemas.api_models import (
     AnalyzeRiskResponse, 
     SimplifyRequest, 
     SimplifyResponse,
+    AskQuestionRequest,
+    AskQuestionResponse,
     ClauseRiskWithGeometry,
     Geometry,
     Quad
 )
-from services.llm_engine import analyze_document_risk, simplify_legal_jargon
+from services.llm_engine import analyze_document_risk, simplify_legal_jargon, answer_document_question
 from services.pdf_processor import find_exact_quote_coordinates
 import uuid
 
@@ -17,6 +19,18 @@ router = APIRouter(tags=["Analyze"])
 # Note: In a real environment, we'd fetch the raw PDF bytes from ephemeral storage 
 # using the document_id. For this hackathon stub, we'll assume a dummy PDF byte stream.
 DUMMY_PDF_BYTES = b"%PDF-1.4 dummy pdf bytes"
+
+@router.post("/analyze/ask", response_model=AskQuestionResponse)
+async def ask_question(request_data: AskQuestionRequest, request: Request):
+    """
+    Answers user questions based strictly on the document text.
+    """
+    answer = await answer_document_question(
+        document_text=request_data.document_text,
+        question=request_data.question
+    )
+    
+    return AskQuestionResponse(answer=answer)
 
 @router.post("/analyze/risk", response_model=AnalyzeRiskResponse)
 async def analyze_risk(request_data: AnalyzeRiskRequest, request: Request):

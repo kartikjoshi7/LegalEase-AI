@@ -78,3 +78,11 @@ class SimplifyRequest(BaseModel):
 class SimplifyResponse(BaseModel):
     plain_english_translation: str
     is_standard: bool
+
+class AskQuestionRequest(BaseModel):
+    document_id: str
+    document_text: str
+    question: str
+
+class AskQuestionResponse(BaseModel):
+    answer: str

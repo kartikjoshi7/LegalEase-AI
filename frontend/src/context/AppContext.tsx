@@ -25,6 +25,8 @@ interface AppContextType {
   setError: (error: string | null) => void;
   hoveredClauseId: string | null;
   setHoveredClauseId: (id: string | null) => void;
+  documentText: string | null;
+  setDocumentText: (text: string | null) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -43,6 +45,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hoveredClauseId, setHoveredClauseId] = useState<string | null>(null);
+  const [documentText, setDocumentText] = useState<string | null>(() => {
+    return sessionStorage.getItem('legalease_doctext') || null;
+  });
 
   useEffect(() => {
     if (riskData) {
@@ -52,6 +57,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [riskData]);
 
+  useEffect(() => {
+    if (documentText) {
+      sessionStorage.setItem('legalease_doctext', documentText);
+    } else {
+      sessionStorage.removeItem('legalease_doctext');
+    }
+  }, [documentText]);
+
   return (
     <AppContext.Provider 
       value={{
@@ -59,7 +72,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         riskData, setRiskData,
         isLoading, setIsLoading,
         error, setError,
-        hoveredClauseId, setHoveredClauseId
+        hoveredClauseId, setHoveredClauseId,
+        documentText, setDocumentText
       }}
     >
       {children}

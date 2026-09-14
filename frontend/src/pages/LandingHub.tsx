@@ -16,7 +16,7 @@ const loadingMessages = [
 ];
 
 export default function LandingHub() {
-  const { setPdfFile, setIsLoading, setRiskData, setError, isLoading } = useAppContext();
+  const { setPdfFile, setIsLoading, setRiskData, setError, isLoading, setDocumentText } = useAppContext();
   const navigate = useNavigate();
   const [messageIndex, setMessageIndex] = useState(0);
   const [userContext, setUserContext] = useState("");
@@ -37,12 +37,15 @@ export default function LandingHub() {
       setIsLoading(true);
       setError(null);
       setRiskData(null);
+      setDocumentText(null);
       setMessageIndex(0);
       
       try {
         const text = await extractTextFromPDF(file);
         const scrubbedText = scrubPII(text);
         
+        setDocumentText(scrubbedText);
+
         const response = await apiClient.post('/analyze/risk', {
           document_id: file.name,
           document_text: scrubbedText,
