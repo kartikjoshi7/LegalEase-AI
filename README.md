@@ -50,19 +50,19 @@ While competitors rely on heavy vector databases and server-side processing, Leg
 
 ```mermaid
 flowchart TD
-  subgraph Client [Browser (React + Vite)]
+  subgraph Client ["Browser (React + Vite)"]
     UI[User Interface] --> Extract[Local PDF Text Extraction]
     Extract --> Scrub[Zero-Knowledge PII Scrubber]
     GeoUI[Visual PDF Highlighter]
   end
 
-  subgraph Cloud [FastAPI Backend]
+  subgraph Cloud ["FastAPI Backend"]
     API[REST Endpoint] --> Limiter[SlowAPI Rate Limiter]
     Limiter --> Validate[Pydantic Input Validation]
     Geo[PyMuPDF Geometry Matcher]
   end
 
-  subgraph AI [Google GenAI]
+  subgraph AI ["Google GenAI"]
     Gemini[Gemini 2.5 Flash]
   end
 
