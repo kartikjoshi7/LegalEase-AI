@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 
 interface ClauseRisk {
   clause_type: string;
@@ -44,7 +44,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const [hoveredClauseId, setHoveredClauseId] = useState<string | null>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (riskData) {
       sessionStorage.setItem('legalease_riskdata', JSON.stringify(riskData));
     } else {

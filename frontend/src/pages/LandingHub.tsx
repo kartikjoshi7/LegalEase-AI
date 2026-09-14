@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { UploadCloud, FileText, CheckCircle2, ShieldCheck, Zap } from 'lucide-react';
+import { UploadCloud, FileText, CheckCircle2, Zap } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { apiClient } from '../api/client';
 import { scrubPII } from '../utils/piiScrubber';

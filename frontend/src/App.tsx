@@ -1,56 +1,14 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import KeepAlive from './components/KeepAlive';
 import LandingHub from './pages/LandingHub';
 import Workspace from './pages/Workspace';
 import DossierPreview from './pages/DossierPreview';
-import { useAppContext } from './context/AppContext';
 import { ShieldCheck, Menu, X } from 'lucide-react';
-import { apiClient } from './api/client';
-import { scrubPII } from './utils/piiScrubber';
-import { extractTextFromPDF } from './utils/pdfExtractor';
 
 function App() {
-  const { setPdfFile, setIsLoading, setRiskData, setError } = useAppContext();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setPdfFile(file);
-      setIsLoading(true);
-      setError(null);
-      setRiskData(null);
-      setMobileMenuOpen(false);
-      
-      try {
-        const text = await extractTextFromPDF(file);
-        const scrubbedText = scrubPII(text);
-        
-        const response = await apiClient.post('/analyze/risk', {
-          document_id: file.name,
-          document_text: scrubbedText,
-          contract_type: 'generic_contract'
-        });
-        
-        setRiskData({
-          fairnessScore: response.fairness_score,
-          executiveSummary: response.executive_summary,
-          flaggedClauses: response.flagged_clauses
-        });
-        
-        navigate('/workspace/latest');
-        
-      } catch (err: any) {
-        console.error("API Error:", err);
-        setError(err.message || "Failed to analyze document.");
-        navigate('/workspace/latest');
-      } finally {
-        setIsLoading(false);
-      }
-    }
-  };
 
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden print:h-auto print:w-auto print:overflow-visible bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-slate-100 via-slate-50 to-slate-200">

@@ -18,7 +18,6 @@ interface PDFViewerProps {
 
 export default function PDFViewer({ pdfFile, hoveredClauseId }: PDFViewerProps) {
   const [numPages, setNumPages] = useState<number>();
-  const [isHovered, setIsHovered] = useState(false);
   const { riskData } = useAppContext();
   
   const [highlightStyle, setHighlightStyle] = useState<React.CSSProperties | null>(null);
@@ -206,11 +205,9 @@ export default function PDFViewer({ pdfFile, hoveredClauseId }: PDFViewerProps) 
           boxShadow: hoveredClauseId ? '0 25px 50px -12px rgba(59, 130, 246, 0.25)' : '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
           transform: hoveredClauseId ? 'scale(1.01)' : 'scale(1)'
         }}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
       >
         <Document file={pdfFile} onLoadSuccess={onDocumentLoadSuccess}>
-          {Array.from(new Array(numPages || 0), (el, index) => (
+          {Array.from(new Array(numPages || 0), (_, index) => (
             <div key={`page_${index + 1}`} className="mb-6 bg-white shadow-sm border border-slate-200">
               <Page 
                 pageNumber={index + 1} 

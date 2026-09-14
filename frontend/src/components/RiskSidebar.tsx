@@ -16,8 +16,7 @@ import {
   RadarChart, 
   PolarGrid, 
   PolarAngleAxis, 
-  PolarRadiusAxis, 
-  ResponsiveContainer 
+  ResponsiveContainer
 } from 'recharts';
 
 interface ClauseRisk {
