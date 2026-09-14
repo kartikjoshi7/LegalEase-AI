@@ -178,14 +178,14 @@ export default function PDFViewer({ pdfFile, hoveredClauseId }: PDFViewerProps) 
 
   if (!pdfFile) {
     return (
-      <div className="flex-1 h-full flex flex-col items-center justify-center p-8 bg-slate-50/50 backdrop-blur-sm">
-        <div className="w-full max-w-md bg-white/80 border border-slate-200/60 rounded-3xl p-10 flex flex-col items-center text-center shadow-2xl">
-          <div className="w-20 h-20 bg-blue-50 rounded-2xl flex items-center justify-center mb-6 shadow-inner border border-blue-100">
-            <svg className="w-10 h-10 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <div className="flex-1 h-full flex flex-col items-center justify-center p-8 bg-slate-50">
+        <div className="w-full max-w-md bg-white border border-slate-200 rounded-3xl p-10 flex flex-col items-center text-center shadow-sm">
+          <div className="w-20 h-20 bg-slate-50 rounded-2xl flex items-center justify-center mb-6 shadow-sm border border-slate-200">
+            <svg className="w-10 h-10 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
             </svg>
           </div>
-          <h3 className="text-xl font-black text-slate-800 mb-2">Session Restored</h3>
+          <h3 className="text-xl font-bold text-slate-800 mb-2">Session Restored</h3>
           <p className="text-slate-500 font-medium leading-relaxed">
             Your risk analytics have been restored. To view the semantic highlighting again, please re-upload your PDF document.
           </p>
@@ -196,11 +196,11 @@ export default function PDFViewer({ pdfFile, hoveredClauseId }: PDFViewerProps) 
   return (
     <div 
       ref={scrollWrapperRef}
-      className="flex-1 h-full flex flex-col items-center overflow-y-auto pt-6 pb-20 relative scroll-smooth"
+      className="flex-1 h-full flex flex-col items-center overflow-y-auto pt-6 pb-20 relative scroll-smooth bg-slate-100"
     >
       <div 
         ref={pdfContainerRef}
-        className="shadow-2xl bg-slate-100 p-4 relative transition-all duration-500 ease-out"
+        className="shadow-xl bg-slate-100 p-4 relative transition-all duration-500 ease-out"
         style={{ 
           borderRadius: '12px',
           boxShadow: hoveredClauseId ? '0 25px 50px -12px rgba(59, 130, 246, 0.25)' : '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
@@ -211,7 +211,7 @@ export default function PDFViewer({ pdfFile, hoveredClauseId }: PDFViewerProps) 
       >
         <Document file={pdfFile} onLoadSuccess={onDocumentLoadSuccess}>
           {Array.from(new Array(numPages || 0), (el, index) => (
-            <div key={`page_${index + 1}`} className="mb-6 bg-white shadow-md border border-slate-200">
+            <div key={`page_${index + 1}`} className="mb-6 bg-white shadow-sm border border-slate-200">
               <Page 
                 pageNumber={index + 1} 
                 renderTextLayer={true}
@@ -234,7 +234,7 @@ export default function PDFViewer({ pdfFile, hoveredClauseId }: PDFViewerProps) 
               className="absolute pointer-events-none z-50 transition-all duration-300 ease-out"
               style={highlightStyle}
             >
-              <div className="absolute inset-0 bg-blue-400/40 border-2 border-blue-500 rounded mix-blend-multiply shadow-[0_0_15px_rgba(59,130,246,0.3)]" />
+              <div className="absolute inset-0 bg-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.5)] border border-blue-400 rounded" />
             </motion.div>
           )}
         </AnimatePresence>

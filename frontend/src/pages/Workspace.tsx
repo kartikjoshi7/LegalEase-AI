@@ -1,55 +1,57 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import PDFViewer from '../components/PDFViewer';
 import RiskPanel from '../components/RiskPanel';
-import { AlertTriangle } from 'lucide-react';
 
 export default function Workspace() {
-  const { pdfFile, riskData, error, hoveredClauseId, setHoveredClauseId } = useAppContext();
+  const { pdfFile, riskData, isLoading } = useAppContext();
   const navigate = useNavigate();
+  const [hoveredClauseId, setHoveredClauseId] = useState<string | null>(null);
 
-  // Guardrail: if user manually refreshes and loses both PDF and RiskData
+  // Guardrail
   useEffect(() => {
-    if (!pdfFile && !riskData && !error) {
+    if (!pdfFile && !isLoading) {
       navigate('/');
     }
-  }, [pdfFile, riskData, error, navigate]);
+  }, [pdfFile, isLoading, navigate]);
 
-  if (!pdfFile && !riskData && !error) return null;
+  if (!pdfFile && !isLoading) return null;
 
   return (
-    <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-      {/* Left Canvas: PDF Document Viewer */}
-      <div className="flex-1 overflow-hidden bg-slate-900/5 flex flex-col relative min-h-[400px] lg:min-h-0">
-        <PDFViewer pdfFile={pdfFile} hoveredClauseId={hoveredClauseId} />
+    <div className="flex-1 flex flex-col lg:flex-row h-full overflow-hidden p-2 gap-2 relative">
+      {/* Background glowing effects */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-500/10 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-indigo-500/10 blur-[120px] rounded-full pointer-events-none" />
+
+      {/* PDF Viewer Pane */}
+      <div className="flex-1 h-full min-h-0 bg-white/60 backdrop-blur-md rounded-2xl border border-white/40 shadow-xl overflow-hidden relative z-10 flex flex-col">
+        <div className="h-12 bg-white/40 border-b border-slate-200/50 flex items-center px-4 shrink-0 backdrop-blur-md">
+          <span className="text-xs font-black uppercase tracking-widest text-slate-500">Document Context</span>
+          <span className="ml-auto text-xs font-bold bg-slate-900 text-white px-2 py-0.5 rounded-full">{pdfFile?.name}</span>
+        </div>
+        <div className="flex-1 overflow-hidden relative">
+          <PDFViewer 
+            pdfFile={pdfFile} 
+            hoveredClauseId={hoveredClauseId}
+          />
+        </div>
       </div>
 
-      {/* Right Canvas: Risk Analysis Panel */}
-      <div className="w-full lg:w-2/5 lg:min-w-[450px] relative h-[50vh] lg:h-full shrink-0 bg-white/60 backdrop-blur-md border-t lg:border-t-0 lg:border-l border-white/80 shadow-2xl z-10 flex flex-col">
-        {error ? (
-          <div className="absolute inset-0 bg-white/50 backdrop-blur-sm z-20 p-8 flex flex-col items-center justify-center text-center">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4 shadow-inner">
-              <AlertTriangle className="w-8 h-8 text-red-600" />
-            </div>
-            <h3 className="text-xl font-bold text-slate-900 mb-2">Analysis Failed</h3>
-            <p className="text-slate-500 mb-6">{error}</p>
-            <button 
-              onClick={() => navigate('/')}
-              className="bg-slate-900 hover:bg-slate-800 text-white px-6 py-2 rounded-lg font-bold shadow-md transition-colors"
-            >
-              Return Home & Try Again
-            </button>
-          </div>
-        ) : null}
-        
-        <RiskPanel 
-          fairnessScore={riskData ? riskData.fairnessScore : null}
-          executiveSummary={riskData ? riskData.executiveSummary : ''}
-          flaggedClauses={riskData ? riskData.flaggedClauses : []}
-          hoveredClauseId={hoveredClauseId}
-          setHoveredClauseId={setHoveredClauseId}
-        />
+      {/* Risk Panel Pane */}
+      <div className="lg:w-[450px] xl:w-[500px] shrink-0 h-full min-h-0 bg-white/70 backdrop-blur-xl rounded-2xl border border-white/40 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden relative z-10 flex flex-col">
+        <div className="h-12 bg-white/60 border-b border-slate-200/50 flex items-center px-4 shrink-0">
+          <span className="text-xs font-black uppercase tracking-widest text-slate-500">AI Risk Analysis</span>
+        </div>
+        <div className="flex-1 overflow-hidden">
+          <RiskPanel 
+            fairnessScore={riskData?.fairnessScore ?? null}
+            executiveSummary={riskData?.executiveSummary ?? ''}
+            flaggedClauses={riskData?.flaggedClauses ?? []}
+            hoveredClauseId={hoveredClauseId}
+            setHoveredClauseId={setHoveredClauseId}
+          />
+        </div>
       </div>
     </div>
   );
