@@ -3,8 +3,8 @@
   <h1>LegalEase AI</h1>
   <p><strong>Make Sense of the Fine Print.</strong> An intelligent, zero-knowledge legal auditor designed for the <strong>AI for Legal Assistance & Access</strong> vertical.</p>
   
-  [![Vercel Deployment](https://img.shields.io/badge/Vercel-Deployed-000000?style=for-the-badge&logo=vercel)](#) <!-- Add URL here after deploy -->
-  [![Render API](https://img.shields.io/badge/Render-Live-46E3B7?style=for-the-badge&logo=render)](#) <!-- Add URL here after deploy -->
+  [![Vercel Deployment](https://img.shields.io/badge/Vercel-Deployed-000000?style=for-the-badge&logo=vercel)](https://legal-ease-ai-snowy.vercel.app)
+  [![Render API](https://img.shields.io/badge/Render-Live-46E3B7?style=for-the-badge&logo=render)](https://legalease-ai-tcr9.onrender.com)
   [![PyTest Coverage](https://img.shields.io/badge/Coverage-100%25-brightgreen.svg?style=for-the-badge)](tests/)
   [![A11y Validated](https://img.shields.io/badge/A11y-Axe--Core%20Verified-blueviolet?style=for-the-badge)](frontend/)
 </div>
@@ -13,8 +13,8 @@
 
 ## 🚀 Live Access
 
-- **Frontend Deployment:** `[Add Vercel URL Here After Deployment]`
-- **Backend API:** `[Add Render URL Here After Deployment]`
+- **Frontend Deployment:** [https://legal-ease-ai-snowy.vercel.app](https://legal-ease-ai-snowy.vercel.app)
+- **Backend API:** [https://legalease-ai-tcr9.onrender.com](https://legalease-ai-tcr9.onrender.com)
 - **Source Code:** [GitHub Repository](https://github.com/kartikjoshi7/LegalEase-AI)
 
 ---

@@ -23,7 +23,7 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # CORS Configuration (Strictly restricted per SECURITY.md)
 origins = [
-    "https://legalease-ai.vercel.app",
+    "https://legal-ease-ai-snowy.vercel.app",
     "http://localhost:3000",
     "http://localhost:5173",
 ]
