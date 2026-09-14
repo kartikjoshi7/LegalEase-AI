@@ -33,12 +33,10 @@ The testing pyramid is divided into:
 
 To preserve the Gemini API free-tier quota (15 RPM), **all automated integration tests MUST mock the generative AI engine.** Never hit the live Gemini API during local test suite runs or CI workflows.
 
-- **Authentication Flow:** 
-  - Test that requests without a valid Firebase Bearer token return `401 Unauthorized`.
-  - Test that valid (mocked) tokens successfully route to the controller.
+
 - **Pipeline Execution:** 
   - Send a mocked text payload to `POST /api/v1/analyze/risk`.
-  - Verify the controller queries the mock ChromaDB, formats the prompt, parses the mock Gemini JSON, extracts coordinates, and returns a `200 OK`.
+  - Verify the controller formats the prompt, parses the mock Gemini JSON, extracts coordinates, and returns a `200 OK`.
 - **Rate Limiting:** 
   - Trigger consecutive rapid requests to verify the `slowapi` token bucket successfully intercepts and returns `429 Too Many Requests`.
 

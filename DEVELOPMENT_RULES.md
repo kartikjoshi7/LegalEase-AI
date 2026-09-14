@@ -5,13 +5,13 @@ This project (`LegalEase AI`) is built for a strict evaluation environment (Hack
 - **Do not invent APIs:** Always consult `API_SPEC.md` before changing request/response schemas.
 - **Do not hallucinate coordinates:** Never attempt to predict or generate `[x1, y1, x2, y2]` spatial data from the LLM. You must use PyMuPDF's deterministic search function for visual anchors.
 - **Do not break the budget:** Never introduce AWS, Google Cloud SQL, or paid-tier integrations. The system must operate completely free via Vercel, Render, and Gemini Free Tier.
-- **Do not bloat the repository:** The final GitHub submission MUST remain under 10MB. Do not commit heavy assets (PDF templates, ChromaDB persistence folders, or `.pkl` files).
+- **Do not bloat the repository:** The final GitHub submission MUST remain under 10MB. Do not commit heavy assets (PDF templates or `.pkl` files).
 
 ## 2. Before Changing Code
 1. Read `PROJECT_SPEC.md` to ensure the feature aligns with the prompt statement.
 2. Read `ARCHITECTURE.md` to understand the boundary between Frontend (React) and Backend (FastAPI).
 3. Inspect the existing implementation in the relevant module.
-4. If a proposed change will increase the repository size significantly, flag it and provide a cloud-storage alternative (e.g., Firebase).
+4. If a proposed change will increase the repository size significantly, flag it and provide a cloud-storage alternative.
 
 ## 3. Modification Rules
 

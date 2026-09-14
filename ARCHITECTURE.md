@@ -7,8 +7,6 @@ Client (React SPA)
 API Gateway (FastAPI)
   ↓ (Business Logic & Orchestration)
 Document Processing (PyMuPDF)
-  ↓ (Retrieval)
-Vector Store (ChromaDB)
   ↓ (LLM Inference)
 Generative Engine (Google Gemini API)
 
@@ -27,12 +25,7 @@ Generative Engine (Google Gemini API)
 *   **Coordinate Extraction:** When the generative model returns an exact text quote, the backend uses `page.search_for(needle, quads=True)` to retrieve a list of precise quadrilateral bounding boxes. This prevents LLM-hallucinated UI coordinate drift.
 *   **Rate Limiting:** Implements strict API rate limits to adhere to the Gemini free-tier quotas (15 requests per minute).
 
-### 3. Knowledge Base & Vector Store
-*   **Tech:** ChromaDB (In-Memory).
-*   **Responsibility:** Stores standard, pre-vetted legal statutory templates loaded at server startup.
-*   **Constraints:** Operates entirely in memory to bypass managed database costs and adhere to zero-budget architecture limits.
-
-### 4. Generative AI Engine
+### 3. Generative AI Engine
 *   **Tech:** Google Gemini API (gemini-2.5-flash-lite).
 *   **Responsibility:** Performs the heavy NLP reasoning, semantic diffing, and risk-scoring.
 *   **Structured Output:** Enforces strict adherence to application requirements using the `response_schema` parameter to guarantee that the model output will strictly follow a predictable JSON structure. It ties directly to a Pydantic `BaseModel` class to parse the JSON into a Python object.

@@ -176,8 +176,23 @@ export default function PDFViewer({ pdfFile, hoveredClauseId }: PDFViewerProps) 
     return () => clearTimeout(timer);
   }, [hoveredClauseId, searchText]);
 
-  if (!pdfFile) return null;
-
+  if (!pdfFile) {
+    return (
+      <div className="flex-1 h-full flex flex-col items-center justify-center p-8 bg-slate-50/50 backdrop-blur-sm">
+        <div className="w-full max-w-md bg-white/80 border border-slate-200/60 rounded-3xl p-10 flex flex-col items-center text-center shadow-2xl">
+          <div className="w-20 h-20 bg-blue-50 rounded-2xl flex items-center justify-center mb-6 shadow-inner border border-blue-100">
+            <svg className="w-10 h-10 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+          </div>
+          <h3 className="text-xl font-black text-slate-800 mb-2">Session Restored</h3>
+          <p className="text-slate-500 font-medium leading-relaxed">
+            Your risk analytics have been restored. To view the semantic highlighting again, please re-upload your PDF document.
+          </p>
+        </div>
+      </div>
+    );
+  }
   return (
     <div 
       ref={scrollWrapperRef}

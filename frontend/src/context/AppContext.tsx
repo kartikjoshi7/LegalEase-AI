@@ -31,10 +31,26 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [pdfFile, setPdfFile] = useState<File | null>(null);
-  const [riskData, setRiskData] = useState<RiskData | null>(null);
+  
+  const [riskData, setRiskData] = useState<RiskData | null>(() => {
+    const saved = sessionStorage.getItem('legalease_riskdata');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) { return null; }
+    }
+    return null;
+  });
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hoveredClauseId, setHoveredClauseId] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (riskData) {
+      sessionStorage.setItem('legalease_riskdata', JSON.stringify(riskData));
+    } else {
+      sessionStorage.removeItem('legalease_riskdata');
+    }
+  }, [riskData]);
 
   return (
     <AppContext.Provider 

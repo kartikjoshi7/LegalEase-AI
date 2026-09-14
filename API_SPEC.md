@@ -4,7 +4,7 @@
 
 - **Base URL (Production):** `https://api.legalease-ai.onrender.com`
 - **Base URL (Development):** `http://localhost:8000`
-- **Authentication:** All protected endpoints (except `/health`) require a valid Firebase ID Token passed in the `Authorization: Bearer <token>` header.
+- **Authentication:** None. Zero-friction access for immediate analysis.
 - **CORS:** Strictly restricted to the Vercel production frontend and localhost.
 - **Data Privacy (REQ-EVAL-001):** The frontend MUST execute client-side regex-based PII scrubbing (masking names, SSNs, addresses, phone numbers) before sending `document_text` to ANY of these endpoints.
 - **Error Standard:** All errors strictly follow the uniform `{"error": "CODE", "message": "Human readable"}` JSON format.
@@ -34,7 +34,7 @@ The core evaluation engine. Identifies asymmetrical liabilities and maps them to
 
 **`POST /api/v1/analyze/risk`**
 
-*Request Headers:* `Authorization: Bearer <token>`, `Content-Type: application/json`
+*Request Headers:* `Content-Type: application/json`
 
 *Request Body:*
 ```json
@@ -75,7 +75,7 @@ Translates dense, unflagged legal jargon into an 8th-grade reading level. Trigge
 
 **`POST /api/v1/analyze/simplify`**
 
-*Request Headers:* `Authorization: Bearer <token>`, `Content-Type: application/json`
+*Request Headers:* `Content-Type: application/json`
 
 *Request Body:*
 ```json
@@ -95,11 +95,11 @@ Translates dense, unflagged legal jargon into an 8th-grade reading level. Trigge
 
 ## 4. Differential Contract Auditing (Statutory Diffing)
 
-Compares an uploaded contract against standard, fair baselines loaded in the ChromaDB in-memory vector store to detect missing consumer protections or unilateral biases.
+Compares an uploaded contract against standard, fair baselines to detect missing consumer protections or unilateral biases.
 
 **`POST /api/v1/analyze/compare`**
 
-*Request Headers:* `Authorization: Bearer <token>`, `Content-Type: application/json`
+*Request Headers:* `Content-Type: application/json`
 
 *Request Body:*
 ```json
@@ -131,7 +131,7 @@ Compiles the risk heatmap, simplified text, and missing protections into a struc
 
 **`POST /api/v1/export/dossier`**
 
-*Request Headers:* `Authorization: Bearer <token>`, `Content-Type: application/json`
+*Request Headers:* `Content-Type: application/json`
 
 *Request Body:*
 ```json
@@ -167,14 +167,6 @@ These error states apply globally to all `/api/v1/` endpoints.
 {
   "error": "INVALID_REQUEST",
   "message": "Missing required field: document_text"
-}
-```
-
-*401 Unauthorized (Auth/JWT Failure)*
-```json
-{
-  "error": "UNAUTHORIZED",
-  "message": "Invalid or expired Firebase ID token."
 }
 ```
 

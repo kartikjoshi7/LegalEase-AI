@@ -12,9 +12,7 @@
 * **Frontend:** React (Vercel Free Tier)
 * **Backend:** Python / FastAPI (Render Free Web Service)
 * **Generative AI:** Google Gemini API (`gemini-2.5-flash-lite`)
-* **Vector Storage:** ChromaDB (In-Memory Ephemeral)
 * **Document Processing:** PyMuPDF (`fitz`)
-* **Authentication & Metadata:** Firebase Auth & Firestore (Spark Plan)
 
 ## 📚 Engineering Contracts (Vibe Coding)
 This repository is strictly governed by living markdown contracts designed to maximize the AI Evaluator's Code Quality, Security, and Efficiency scores. Review these before modifying code:

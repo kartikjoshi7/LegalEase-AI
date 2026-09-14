@@ -5,7 +5,7 @@
 **Date:** 2026-09-13
 
 ### Decision
-Deploy the frontend to Vercel (Free Tier), the backend to Render (Free Web Service), use the Google Gemini API (Free Tier), and run ChromaDB entirely in-memory (`chromadb.EphemeralClient`). 
+Deploy the frontend to Vercel (Free Tier), the backend to Render (Free Web Service), use the Google Gemini API (Free Tier). 
 
 ### Reason
 The project must be built entirely free without requiring any paid billing accounts or managed database subscriptions, while remaining robust enough to handle the automated AI Evaluator traffic.
@@ -16,7 +16,6 @@ The project must be built entirely free without requiring any paid billing accou
 
 ### Consequences
 - We must strictly adhere to Gemini's 15 Requests Per Minute limit via rate-limiting.
-- Database state (ChromaDB) is volatile and resets on server restart, requiring standard legal baselines to be loaded dynamically into memory on startup.
 
 ---
 

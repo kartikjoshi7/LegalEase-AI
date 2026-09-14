@@ -12,7 +12,7 @@ The generative AI engine must translate complex legal clauses (e.g., indemnifica
 The generative AI must NOT predict or return bounding box coordinates. It must return the `exact_quote` of a flagged clause. The backend must use `PyMuPDF` (`page.search_for(exact_quote)`) to find the precise coordinates and map them to the frontend PDF viewer.
 
 **REQ-FUNC-004: Differential Auditing (Statutory Baseline)**
-The system must compare uploaded contracts against in-memory statutory baselines (loaded via ChromaDB) to identify missing consumer protections and asymmetrical liabilities.
+The system must compare uploaded contracts against in-memory statutory baselines to identify missing consumer protections and asymmetrical liabilities.
 
 **REQ-FUNC-005: Counter-Draft Generation**
 For any clause flagged as highly risky (Severity is High or Critical), the system must generate a balanced, market-standard replacement clause formatted for easy copying.
@@ -44,6 +44,4 @@ The backend must track Gemini API usage and queue requests to ensure it never ex
 
 **REQ-PERF-003: Cold-Start Mitigation (Keep-Alive)**
 The React frontend must ping a dedicated `/api/v1/health` endpoint on the Render backend every 5 minutes to prevent the container from sleeping, ensuring the AI Evaluator does not encounter a 50-second timeout error.
-
-**REQ-PERF-004: Ephemeral Vector Storage**
-ChromaDB must run entirely in-memory (`chromadb.EphemeralClient()`). Standard legal templates must be vectorized dynamically during the FastAPI server startup sequence.
+
