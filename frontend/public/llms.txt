@@ -1,0 +1,14 @@
+# LegalEase AI
+
+> Make Sense of the Fine Print
+
+LegalEase AI is a smart, zero-cost legal document auditor designed to identify hidden risks, unfair clauses, and draft counter-proposals instantly using advanced generative AI.
+
+## Core Capabilities
+- **Context-aware AI legal analysis**: Understands the user's role (e.g., Tenant, Freelancer) when reviewing documents.
+- **Detailed feedback and counter-drafts**: Generates plain-English explanations and actionable counter-proposals.
+- **On-device PII scrubbing**: Removes SSNs, emails, and phone numbers in the browser before sending data to the cloud.
+- **Semantic PDF highlight mapping**: Maps the AI's flagged clauses directly back to the physical coordinates on the PDF.
+
+## Usage
+Users can upload contracts (PDF) on the landing hub. The application extracts text, scrubs PII, and securely sends the text to the LegalEase API (powered by Google Gemini) for analysis. Data is not permanently stored or used for training.

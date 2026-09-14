@@ -4,7 +4,7 @@ import KeepAlive from './components/KeepAlive';
 import LandingHub from './pages/LandingHub';
 import Workspace from './pages/Workspace';
 import DossierPreview from './pages/DossierPreview';
-import { ShieldCheck, Menu, X } from 'lucide-react';
+import { ShieldCheck, Menu, X, UploadCloud } from 'lucide-react';
 
 function App() {
   const navigate = useNavigate();
@@ -20,17 +20,22 @@ function App() {
         <div className="flex items-center gap-8">
           {/* Logo */}
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white shadow-lg shadow-blue-500/30 border border-white/20">
-              <ShieldCheck className="w-6 h-6" />
-            </div>
+            <img src="/logo.jpg" alt="LegalEase AI Logo" className="w-10 h-10 rounded-xl shadow-lg border border-blue-100" />
             <h1 className="text-2xl font-black text-slate-900 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600">
               LegalEase <span className="font-light">AI</span>
             </h1>
           </div>
         </div>
 
-        {/* Right Actions - Removed unused buttons */}
+        {/* Right Actions */}
         <div className="hidden lg:flex items-center gap-4">
+          <button 
+            onClick={() => navigate('/')}
+            className="flex items-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 px-4 py-2 rounded-xl font-bold transition-colors border border-blue-200 shadow-sm"
+          >
+            <UploadCloud className="w-4 h-4" />
+            New Document
+          </button>
         </div>
 
         {/* Mobile Menu Toggle */}

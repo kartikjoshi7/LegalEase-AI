@@ -83,9 +83,15 @@ export default function LandingHub() {
             animate={{ x: 0, opacity: 1 }}
             className="flex flex-col z-10"
           >
-            <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-200 text-blue-700 px-3 py-1 rounded-full text-xs font-bold tracking-widest uppercase mb-6 w-max shadow-sm">
-              <Zap className="w-3 h-3 fill-blue-600" /> AI-Powered Analysis
+            <div className="flex items-center gap-4 mb-6">
+              <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-200 text-blue-700 px-3 py-1 rounded-full text-xs font-bold tracking-widest uppercase shadow-sm">
+                <Zap className="w-3 h-3 fill-blue-600" /> LegalEase AI
+              </div>
             </div>
+            
+            <h2 className="text-xl font-bold text-slate-500 mb-2 uppercase tracking-widest">
+              Make Sense of the Fine Print
+            </h2>
             <h1 className="text-5xl lg:text-6xl font-black text-slate-900 leading-tight mb-6 tracking-tight">
               Instant Legal <br/>
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">Document Review</span>
