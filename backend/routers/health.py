@@ -10,8 +10,7 @@ async def health_check():
     to prevent the Render free-tier container from cold-starting.
     """
     return {
-        "status": "active",
+        "status": "ok",
         "timestamp": datetime.now(timezone.utc).isoformat(),
-        "vector_store": "ready",
         "gemini_api": "connected"
     }

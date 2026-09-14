@@ -23,7 +23,6 @@ Prevents the Render free-tier container from cold-starting. Pinged every 5 minut
 {
   "status": "active",
   "timestamp": "2026-09-13T19:45:30Z",
-  "vector_store": "ready",
   "gemini_api": "connected"
 }
 ```

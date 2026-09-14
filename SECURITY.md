@@ -30,7 +30,7 @@ Legal contracts routinely contain Personally Identifiable Information (PII). In 
 ## 3. Secrets Management & Environment Isolation
 
 ### Secret Protection Rules
-- **No Hardcoded Keys:** `GEMINI_API_KEY`, `FIREBASE_ADMIN_CREDENTIALS`, and session secrets must NEVER be committed to Git.
+- **No Hardcoded Keys:** `GEMINI_API_KEY` and session secrets must NEVER be committed to Git.
 - **Git Hygiene:** The `.gitignore` must explicitly block:
     .env
     .env.local

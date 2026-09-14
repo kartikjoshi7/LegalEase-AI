@@ -18,7 +18,7 @@ A zero-cost, high-accuracy legal document auditor and negotiation workbench desi
 ## Explicit Non-Goals
 - **No Replacement of Professional Counsel:** The platform will strictly provide information and assistance, prominently featuring disclaimers that it does not replace professional legal advice.
 - **No Paid Tiers or Billing:** Version 1 will operate entirely on free-tier infrastructure (Vercel, Render, Gemini API) to ensure zero operating costs.
-- **No Heavy Vector Database Hosting:** Will utilize an ephemeral, in-memory ChromaDB instance to avoid managed cloud database fees.
+- **No Database Hosting:** Will utilize a strictly stateless, in-memory architecture to avoid managed cloud database fees and maximize deployment speed.
 
 ## Constraints & Hack2Skill Evaluator Alignment
 - **Repository Size:** The public GitHub repository MUST strictly remain under 10MB (exclude PDFs, binaries, and `node_modules`).

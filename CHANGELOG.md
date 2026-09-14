@@ -10,7 +10,7 @@
 - Created `DEVELOPMENT_RULES.md` to prevent AI-induced scope creep and repository bloat.
 - Created `DATA_MODEL.md` enforcing Pydantic schemas for LLM structured outputs.
 - Created `API_SPEC.md` detailing all frontend-backend REST contracts.
-- Created `SECURITY.md` establishing zero-knowledge ingestion and Firebase auth constraints.
+- Created `SECURITY.md` establishing zero-knowledge ingestion constraints.
 - Created `TESTING.md` defining mandatory pre-commit checks for the 10MB repository limit and accessibility requirements.
 
 ### Changed
