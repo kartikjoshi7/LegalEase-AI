@@ -102,3 +102,11 @@ Thumbs.db
 .coverage
 htmlcov/
 *.log
+
+# ========================================
+# 7. Playwright E2E Testing
+# ========================================
+playwright-report/
+test-results/
+.playwright/
+*playwright*
