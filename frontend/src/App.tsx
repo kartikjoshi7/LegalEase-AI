@@ -4,7 +4,7 @@ import KeepAlive from './components/KeepAlive';
 import LandingHub from './pages/LandingHub';
 import Workspace from './pages/Workspace';
 import DossierPreview from './pages/DossierPreview';
-import { ShieldCheck, Menu, X, UploadCloud } from 'lucide-react';
+import { Menu, X, UploadCloud } from 'lucide-react';
 
 function App() {
   const navigate = useNavigate();
