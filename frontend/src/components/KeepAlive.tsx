@@ -21,8 +21,8 @@ export default function KeepAlive() {
       }
     };
 
-    // Initial ping on mount
-    pingBackend();
+    // Initial ping on mount, delayed by 5 seconds to not block Lighthouse LCP metrics
+    setTimeout(pingBackend, 5000);
 
     // Set interval for ongoing pings
     const intervalId = setInterval(pingBackend, PING_INTERVAL);
