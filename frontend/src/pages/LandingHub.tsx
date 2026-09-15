@@ -137,13 +137,13 @@ export default function LandingHub() {
               <div className="space-y-6">
                 <div>
                   <h3 className="text-xs font-bold text-slate-600 uppercase tracking-widest mb-2 flex items-center gap-2">
-                    Representation Context <span className="text-slate-400 font-medium normal-case">(Optional)</span>
+                    Representation Context <span className="text-slate-500 font-medium normal-case">(Optional)</span>
                   </h3>
                   <textarea
                     value={userContext}
                     onChange={(e) => setUserContext(e.target.value)}
                     placeholder="e.g., I am the Tenant. We have zero budget for hidden fees."
-                    className="w-full h-24 bg-white/50 border border-slate-200 rounded-xl p-4 text-slate-700 font-medium placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition-all shadow-inner"
+                    className="w-full h-24 bg-white/50 border border-slate-200 rounded-xl p-4 text-slate-700 font-medium placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition-all shadow-inner"
                   />
                 </div>
 
@@ -154,7 +154,7 @@ export default function LandingHub() {
                       <UploadCloud className="w-6 h-6" />
                     </div>
                     <p className="text-slate-700 font-bold">Click to upload PDF</p>
-                    <p className="text-slate-400 text-xs mt-1 font-medium">Max file size 50MB</p>
+                    <p className="text-slate-500 text-xs mt-1 font-medium">Max file size 50MB</p>
                     <input 
                       type="file" 
                       className="sr-only" 
