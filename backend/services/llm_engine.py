@@ -81,7 +81,7 @@ async def analyze_document_risk(document_text: str, contract_type: str, user_con
     
     try:
         response = gemini_client.models.generate_content(
-            model='gemini-2.5-flash',
+            model='gemini-3.5-flash',
             contents=prompt,
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",
@@ -134,7 +134,7 @@ async def simplify_legal_jargon(target_text: str) -> SimplificationLLMOutput:
     
     try:
         response = gemini_client.models.generate_content(
-            model='gemini-2.5-flash',
+            model='gemini-3.5-flash',
             contents=prompt,
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",
@@ -189,7 +189,7 @@ async def answer_document_question(document_text: str, question: str) -> str:
     
     try:
         response = gemini_client.models.generate_content(
-            model='gemini-2.5-flash',
+            model='gemini-3.5-flash',
             contents=prompt,
             config=types.GenerateContentConfig(
                 temperature=0.1,
