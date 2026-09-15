@@ -136,25 +136,25 @@ export default function LandingHub() {
               
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-xs font-bold text-slate-600 uppercase tracking-widest mb-2 flex items-center gap-2">
-                    Representation Context <span className="text-slate-500 font-medium normal-case">(Optional)</span>
+                  <h3 className="text-xs font-bold text-slate-700 uppercase tracking-widest mb-2 flex items-center gap-2">
+                    Representation Context <span className="text-slate-600 font-medium normal-case">(Optional)</span>
                   </h3>
                   <textarea
                     value={userContext}
                     onChange={(e) => setUserContext(e.target.value)}
                     placeholder="e.g., I am the Tenant. We have zero budget for hidden fees."
-                    className="w-full h-24 bg-white/50 border border-slate-200 rounded-xl p-4 text-slate-700 font-medium placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition-all shadow-inner"
+                    className="w-full h-24 bg-white/50 border border-slate-200 rounded-xl p-4 text-slate-700 font-medium placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition-all shadow-inner"
                   />
                 </div>
 
                 <div>
                   <h3 className="text-xs font-bold text-slate-600 uppercase tracking-widest mb-2">Upload Files</h3>
                   <label className="w-full h-40 rounded-xl border-2 border-dashed border-slate-300 bg-white/40 hover:bg-white/80 flex flex-col items-center justify-center transition-all hover:border-blue-500 cursor-pointer group">
-                    <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-sm">
+                    <div className="w-12 h-12 bg-blue-50 text-blue-700 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-sm">
                       <UploadCloud className="w-6 h-6" />
                     </div>
-                    <p className="text-slate-700 font-bold">Click to upload PDF</p>
-                    <p className="text-slate-500 text-xs mt-1 font-medium">Max file size 50MB</p>
+                    <p className="text-slate-800 font-bold">Click to upload PDF</p>
+                    <p className="text-slate-600 text-xs mt-1 font-medium">Max file size 50MB</p>
                     <input 
                       type="file" 
                       className="sr-only" 
