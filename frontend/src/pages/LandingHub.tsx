@@ -92,9 +92,9 @@ export default function LandingHub() {
               </div>
             </div>
             
-            <h2 className="text-xl font-bold text-slate-500 mb-2 uppercase tracking-widest">
+            <p className="text-xl font-bold text-slate-600 mb-2 uppercase tracking-widest">
               Make Sense of the Fine Print
-            </h2>
+            </p>
             <h1 className="text-5xl lg:text-6xl font-black text-slate-900 leading-tight mb-6 tracking-tight">
               Instant Legal <br/>
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">Document Review</span>
@@ -104,7 +104,7 @@ export default function LandingHub() {
             </p>
             
             <div className="space-y-4">
-              <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider mb-2">Platform Highlights</h3>
+              <h2 className="text-sm font-black text-slate-900 uppercase tracking-wider mb-2">Platform Highlights</h2>
               {[
                 "Context-aware AI legal analysis",
                 "Detailed feedback and counter-drafts",
@@ -133,7 +133,7 @@ export default function LandingHub() {
               
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 flex items-center gap-2">
+                  <h3 className="text-xs font-bold text-slate-600 uppercase tracking-widest mb-2 flex items-center gap-2">
                     Representation Context <span className="text-slate-400 font-medium normal-case">(Optional)</span>
                   </h3>
                   <textarea
@@ -145,7 +145,7 @@ export default function LandingHub() {
                 </div>
 
                 <div>
-                  <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Upload Files</h3>
+                  <h3 className="text-xs font-bold text-slate-600 uppercase tracking-widest mb-2">Upload Files</h3>
                   <label className="w-full h-40 rounded-xl border-2 border-dashed border-slate-300 bg-white/40 hover:bg-white/80 flex flex-col items-center justify-center transition-all hover:border-blue-500 cursor-pointer group">
                     <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-sm">
                       <UploadCloud className="w-6 h-6" />

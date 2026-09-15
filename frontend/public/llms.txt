@@ -12,3 +12,6 @@ LegalEase AI is a smart, zero-cost legal document auditor designed to identify h
 
 ## Usage
 Users can upload contracts (PDF) on the landing hub. The application extracts text, scrubs PII, and securely sends the text to the LegalEase API (powered by Google Gemini) for analysis. Data is not permanently stored or used for training.
+
+## Resources
+- [Website](https://legal-ease-ai-snowy.vercel.app/)
