@@ -21,8 +21,8 @@ export default function KeepAlive() {
       }
     };
 
-    // Initial ping on mount, delayed by 5 seconds to not block Lighthouse LCP metrics
-    setTimeout(pingBackend, 5000);
+    // Removed initial ping to eliminate initial page load network congestion.
+    // The setInterval below is sufficient to keep the backend warm.
 
     // Set interval for ongoing pings
     const intervalId = setInterval(pingBackend, PING_INTERVAL);
