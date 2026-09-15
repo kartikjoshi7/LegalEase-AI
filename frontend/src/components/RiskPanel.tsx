@@ -385,4 +385,4 @@ export default React.memo(function RiskPanel({ fairnessScore, executiveSummary, 
       </div>
     </div>
   );
-}
+});

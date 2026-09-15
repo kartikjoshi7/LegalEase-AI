@@ -238,4 +238,4 @@ export default React.memo(function PDFViewer({ pdfFile, hoveredClauseId }: PDFVi
       </div>
     </div>
   );
-}
+});
