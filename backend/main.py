@@ -1,3 +1,7 @@
+"""
+Main application entry point for the LegalEase AI backend.
+Provides strict rate-limiting, CORS policies, and RESTful routing.
+"""
 from dotenv import load_dotenv
 load_dotenv()
 

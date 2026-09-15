@@ -43,7 +43,9 @@ interface RiskPanelProps {
   setHoveredClauseId: (id: string | null) => void;
 }
 
-export default function RiskPanel({ fairnessScore, executiveSummary, flaggedClauses, hoveredClauseId, setHoveredClauseId }: RiskPanelProps) {
+import React from 'react';
+
+export default React.memo(function RiskPanel({ fairnessScore, executiveSummary, flaggedClauses, hoveredClauseId, setHoveredClauseId }: RiskPanelProps) {
   const [activeTab, setActiveTab] = useState<'risks' | 'analytics' | 'ask'>('risks');
   const [expandedCards, setExpandedCards] = useState<Record<number, boolean>>({});
   const [copiedId, setCopiedId] = useState<number | null>(null);

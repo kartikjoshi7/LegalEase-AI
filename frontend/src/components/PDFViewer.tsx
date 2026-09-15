@@ -16,7 +16,7 @@ interface PDFViewerProps {
   hoveredClauseId: string | null;
 }
 
-export default function PDFViewer({ pdfFile, hoveredClauseId }: PDFViewerProps) {
+export default React.memo(function PDFViewer({ pdfFile, hoveredClauseId }: PDFViewerProps) {
   const [numPages, setNumPages] = useState<number>();
   const { riskData } = useAppContext();
   

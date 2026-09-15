@@ -15,6 +15,12 @@ const loadingMessages = [
   "Generating Attorney Dossier..."
 ];
 
+/**
+ * LandingHub Component
+ * Handles the main landing page UI, PDF file uploads, and routing to the workspace.
+ * Applies accessibility roles and strictly limits PII exposure via on-device scrubbing.
+ * @returns React Component
+ */
 export default function LandingHub() {
   const { setPdfFile, setIsLoading, setRiskData, setError, isLoading, setDocumentText } = useAppContext();
   const navigate = useNavigate();
@@ -65,7 +71,6 @@ export default function LandingHub() {
         
       } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : "Failed to analyze document.";
-        console.error("API Error:", err);
         setError(errorMessage);
         navigate('/workspace/latest'); // navigate anyway to show the error state in the workspace
       } finally {
@@ -75,7 +80,7 @@ export default function LandingHub() {
   };
 
   return (
-    <div className="flex-1 flex items-center justify-center relative p-8">
+    <div role="region" aria-label="Landing Page" className="flex-1 flex items-center justify-center relative p-8">
       {/* Background glowing effects */}
       <div className="absolute top-1/2 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-500/20 blur-[120px] rounded-full pointer-events-none" />
       <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-indigo-500/20 blur-[120px] rounded-full pointer-events-none" />
@@ -91,7 +96,7 @@ export default function LandingHub() {
           >
             <div className="flex items-center gap-4 mb-6">
               <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-200 text-blue-700 px-3 py-1 rounded-full text-xs font-bold tracking-widest uppercase shadow-sm">
-                <Zap className="w-3 h-3 fill-blue-600" /> LegalEase AI
+                <Zap className="w-3 h-3 fill-blue-600" aria-hidden="true" /> LegalEase AI
               </div>
             </div>
             
@@ -115,7 +120,7 @@ export default function LandingHub() {
                 "Semantic PDF highlight mapping"
               ].map((highlight, idx) => (
                 <div key={idx} className="flex items-center gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                  <CheckCircle2 className="w-5 h-5 text-emerald-500" aria-hidden="true" />
                   <span className="text-slate-700 font-medium">{highlight}</span>
                 </div>
               ))}
@@ -129,7 +134,7 @@ export default function LandingHub() {
             transition={{ delay: 0.1 }}
             className="w-full z-10"
           >
-            <div className="bg-white/70 backdrop-blur-xl border border-white/60 rounded-3xl p-8 shadow-[0_20px_50px_-12px_rgba(37,99,235,0.15)] flex flex-col relative overflow-hidden">
+            <div role="form" aria-label="Document Upload Form" className="bg-white/70 backdrop-blur-xl border border-white/60 rounded-3xl p-8 shadow-[0_20px_50px_-12px_rgba(37,99,235,0.15)] flex flex-col relative overflow-hidden">
               <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-blue-500 to-indigo-600" />
               
               <h2 className="text-2xl font-black text-slate-900 mb-6">Review My Document</h2>
@@ -142,6 +147,8 @@ export default function LandingHub() {
                   <textarea
                     value={userContext}
                     onChange={(e) => setUserContext(e.target.value)}
+                    aria-label="Optional Representation Context"
+                    tabIndex={0}
                     placeholder="e.g., I am the Tenant. We have zero budget for hidden fees."
                     className="w-full h-24 bg-white/50 border border-slate-200 rounded-xl p-4 text-slate-700 font-medium placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition-all shadow-inner"
                   />
@@ -149,9 +156,9 @@ export default function LandingHub() {
 
                 <div>
                   <h3 className="text-xs font-bold text-slate-600 uppercase tracking-widest mb-2">Upload Files</h3>
-                  <label className="w-full h-40 rounded-xl border-2 border-dashed border-slate-300 bg-white/40 hover:bg-white/80 flex flex-col items-center justify-center transition-all hover:border-blue-500 cursor-pointer group">
+                  <label aria-label="Upload PDF File Dropzone" tabIndex={0} className="w-full h-40 rounded-xl border-2 border-dashed border-slate-300 bg-white/40 hover:bg-white/80 flex flex-col items-center justify-center transition-all hover:border-blue-500 cursor-pointer group">
                     <div className="w-12 h-12 bg-blue-50 text-blue-700 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-sm">
-                      <UploadCloud className="w-6 h-6" />
+                      <UploadCloud className="w-6 h-6" aria-hidden="true" />
                     </div>
                     <p className="text-slate-800 font-bold">Click to upload PDF</p>
                     <p className="text-slate-600 text-xs mt-1 font-medium">Max file size 50MB</p>
@@ -188,13 +195,14 @@ export default function LandingHub() {
               animate={{ rotateY: 360 }}
               transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
               className="w-20 h-20 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl flex items-center justify-center mb-6 border border-blue-100 shadow-inner"
+              aria-hidden="true"
             >
               <FileText className="w-10 h-10 text-blue-600" />
             </motion.div>
             
-            <h3 className="text-2xl font-black text-slate-900 mb-6 tracking-tight">Analyzing Contract...</h3>
+            <h3 aria-live="polite" className="text-2xl font-black text-slate-900 mb-6 tracking-tight">Analyzing Contract...</h3>
             
-            <div className="h-16 relative w-full flex items-center justify-center overflow-hidden mb-2 px-4">
+            <div className="h-16 relative w-full flex items-center justify-center overflow-hidden mb-2 px-4" aria-live="polite">
               <AnimatePresence mode="popLayout">
                 <motion.p
                   key={messageIndex}

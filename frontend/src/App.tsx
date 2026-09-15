@@ -16,7 +16,7 @@ function App() {
       <KeepAlive />
       
       {/* Premium Top Navbar */}
-      <header className="print:hidden h-20 bg-white/80 backdrop-blur-md border-b border-slate-200/50 flex items-center justify-between px-6 lg:px-12 shrink-0 z-50 relative shadow-sm">
+      <header role="banner" className="print:hidden h-20 bg-white/80 backdrop-blur-md border-b border-slate-200/50 flex items-center justify-between px-6 lg:px-12 shrink-0 z-50 relative shadow-sm">
         
         <div className="flex items-center gap-8">
           {/* Logo */}
@@ -32,21 +32,22 @@ function App() {
         <div className="hidden lg:flex items-center gap-4">
           <button 
             onClick={() => navigate('/')}
+            aria-label="Upload New Document"
             className="flex items-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 px-4 py-2 rounded-xl font-bold transition-colors border border-blue-200 shadow-sm"
           >
-            <UploadCloud className="w-4 h-4" />
+            <UploadCloud className="w-4 h-4" aria-hidden="true" />
             New Document
           </button>
         </div>
 
         {/* Mobile Menu Toggle */}
-        <button className="lg:hidden p-2 text-slate-700" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-          {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        <button aria-label="Toggle navigation menu" className="lg:hidden p-2 text-slate-700" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+          {mobileMenuOpen ? <X className="w-6 h-6" aria-hidden="true" /> : <Menu className="w-6 h-6" aria-hidden="true" />}
         </button>
       </header>
 
       {/* Main Workspace Router */}
-      <main className="flex-1 flex overflow-hidden print:overflow-visible print:block relative">
+      <main role="main" className="flex-1 flex overflow-hidden print:overflow-visible print:block relative">
         <Suspense fallback={
           <div className="flex-1 flex items-center justify-center p-8 bg-slate-50/50">
             <div className="w-10 h-10 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin"></div>
