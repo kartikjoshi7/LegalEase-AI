@@ -27,17 +27,17 @@ test.describe('LegalEase AI E2E', () => {
   test('Simulates file upload and triggers analysis loading state', async ({ page }) => {
     await page.goto('http://localhost:5173/');
     
-    // Create a dummy PDF file buffer in memory
-    const dummyPdfContent = Buffer.from('%PDF-1.4\n1 0 obj\n<<>>\nendobj\ntrailer\n<<>>\n%%EOF');
+    // Create a mock PDF file buffer in memory
+    const mockPdfContent = Buffer.from('%PDF-1.4\n1 0 obj\n<<>>\nendobj\ntrailer\n<<>>\n%%EOF');
     
     // Locate the file input and set the files
     const fileChooserPromise = page.waitForEvent('filechooser');
     await page.locator('text=Click to upload PDF').click();
     const fileChooser = await fileChooserPromise;
     await fileChooser.setFiles({
-      name: 'dummy_contract.pdf',
+      name: 'sample_contract.pdf',
       mimeType: 'application/pdf',
-      buffer: dummyPdfContent
+      buffer: mockPdfContent
     });
     
     // Verify loading screen appears

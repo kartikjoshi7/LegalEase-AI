@@ -26,7 +26,7 @@ async def test_analyze_risk_mock(mock_find):
         "contract_type": "generic_contract",
         "user_context": ""
     }
-    files = {'file': ('dummy.pdf', b'%PDF-1.4', 'application/pdf')}
+    files = {'file': ('sample.pdf', b'%PDF-1.4', 'application/pdf')}
     
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         response = await ac.post("/api/v1/analyze/risk", data=data, files=files)
@@ -56,7 +56,7 @@ async def test_analyze_risk_validation_error():
         "document_id": "test.pdf",
         "contract_type": "generic_contract"
     }
-    files = {'file': ('dummy.pdf', b'%PDF-1.4', 'application/pdf')}
+    files = {'file': ('sample.pdf', b'%PDF-1.4', 'application/pdf')}
     
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         response = await ac.post("/api/v1/analyze/risk", data=data, files=files)

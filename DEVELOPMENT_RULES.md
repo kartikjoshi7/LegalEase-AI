@@ -1,6 +1,6 @@
-# Development Rules & Vibe Coding Constitution
+# Development Rules & Architecture Constitution
 
-## 1. Golden Rules for AI / Vibe Coders
+## 1. Golden Rules for AI Assistants
 This project (`LegalEase AI`) is built for a strict evaluation environment (Hack2skill PromptWars). You, the AI agent or developer, must strictly adhere to these rules before modifying any code. 
 - **Do not invent APIs:** Always consult `API_SPEC.md` before changing request/response schemas.
 - **Do not hallucinate coordinates:** Never attempt to predict or generate `[x1, y1, x2, y2]` spatial data from the LLM. You must use PyMuPDF's deterministic search function for visual anchors.

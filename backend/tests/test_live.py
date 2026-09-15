@@ -22,7 +22,7 @@ async def test_live_analyze_risk(mock_find):
         "contract_type": "commercial_lease",
         "user_context": ""
     }
-    files = {'file': ('dummy.pdf', b'%PDF-1.4\nTenant agrees to indemnify and hold Landlord harmless', 'application/pdf')}
+    files = {'file': ('sample.pdf', b'%PDF-1.4\nTenant agrees to indemnify and hold Landlord harmless', 'application/pdf')}
     
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         response = await ac.post("/api/v1/analyze/risk", data=data, files=files)

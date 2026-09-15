@@ -18,9 +18,6 @@ from limiter import limiter
 
 router = APIRouter(tags=["Analyze"])
 
-# Note: In a real environment, we'd fetch the raw PDF bytes from ephemeral storage 
-# using the document_id. For this hackathon stub, we'll assume a dummy PDF byte stream.
-DUMMY_PDF_BYTES = b"%PDF-1.4 dummy pdf bytes"
 
 @router.post("/analyze/ask", response_model=AskQuestionResponse)
 @limiter.limit("5/minute")

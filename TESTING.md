@@ -15,7 +15,7 @@ The testing pyramid is divided into:
 
 ### Frontend (React / Jest)
 - **PII Scrubber Validation (REQ-EVAL-001):** 
-  - Must test that dummy SSNs, names, and phone numbers are successfully replaced with `[REDACTED_SSN]`, `[REDACTED_NAME]`, etc., before the payload constructor.
+  - Must test that mock SSNs, names, and phone numbers are successfully replaced with `[REDACTED_SSN]`, `[REDACTED_NAME]`, etc., before the payload constructor.
 - **Component Rendering:** 
   - Verify that the dual-pane PDF viewer mounts without crashing.
   - Verify that UI overlays correctly map to the mathematically calculated `quads` provided by the backend.
