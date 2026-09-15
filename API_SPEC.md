@@ -33,16 +33,14 @@ The core evaluation engine. Identifies asymmetrical liabilities and maps them to
 
 **`POST /api/v1/analyze/risk`**
 
-*Request Headers:* `Content-Type: application/json`
+*Request Headers:* `Content-Type: multipart/form-data`
 
-*Request Body:*
-```json
-{
-  "document_id": "doc_123abc",
-  "document_text": "THIS AGREEMENT is made... [PII SCRUBBED TEXT] ...",
-  "contract_type": "residential_lease"
-}
-```
+*Request Body (Form Data):*
+- `file`: `UploadFile` (The raw PDF binary)
+- `document_id`: `string`
+- `document_text`: `string` (The PII-scrubbed document text)
+- `contract_type`: `string`
+- `user_context`: `string` (Optional)
 
 *Success Response (200 OK):*
 ```json

@@ -3,7 +3,7 @@
 ## High-Level System Design
 
 Client (React SPA)
-  ↓ (REST API / JSON)
+  ↓ (REST API / JSON & Multipart FormData)
 API Gateway (FastAPI)
   ↓ (Business Logic & Orchestration)
 Document Processing (PyMuPDF)

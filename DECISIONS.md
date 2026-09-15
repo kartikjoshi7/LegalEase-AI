@@ -26,6 +26,8 @@ The project must be built entirely free without requiring any paid billing accou
 ### Decision
 The LLM will strictly return the verbatim `exact_quote` of a risky clause, and the FastAPI backend will calculate the exact PDF coordinates using `PyMuPDF` (`page.search_for(exact_quote, quads=True)`). The LLM will never predict or generate `[x, y]` coordinates.
 
+To achieve this without violating our Zero-Knowledge Retention policy, the system uses a **Hybrid Multipart Pipeline**. The frontend extracts and scrubs the text. It then sends *both* the scrubbed text (for Gemini) and the raw PDF (for PyMuPDF) to the backend in a single `multipart/form-data` request. The backend processes the geometry entirely in-memory and immediately discards the PDF bytes, guaranteeing 100% spatial accuracy without retaining sensitive files.
+
 ### Reason
 LLMs suffer from severe spatial hallucination when attempting to map text to visual PDF coordinates. Relying on deterministic math (PyMuPDF) guarantees 100% accuracy for the frontend UI visual heatmap, directly maximizing the Code Quality and Accuracy evaluation scores.
 

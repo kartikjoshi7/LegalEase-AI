@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 
 interface ClauseRisk {
@@ -37,7 +38,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [riskData, setRiskData] = useState<RiskData | null>(() => {
     const saved = sessionStorage.getItem('legalease_riskdata');
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) { return null; }
+      try { return JSON.parse(saved); } catch { return null; }
     }
     return null;
   });

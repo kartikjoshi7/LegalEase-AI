@@ -7,7 +7,7 @@ test.describe('LegalEase AI E2E', () => {
     await page.goto('http://localhost:5173');
     
     // Check main headline exists
-    await expect(page.locator('text=LegalEase AI')).toBeVisible();
+    await expect(page.locator('text=LegalEase AI').first()).toBeVisible();
     
     // Check accessibility
     const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
@@ -21,7 +21,27 @@ test.describe('LegalEase AI E2E', () => {
     
     // It should detect no file and redirect to '/'
     await expect(page).toHaveURL('http://localhost:5173/');
-    await expect(page.locator('text=LegalEase AI')).toBeVisible();
+    await expect(page.locator('text=LegalEase AI').first()).toBeVisible();
+  });
+
+  test('Simulates file upload and triggers analysis loading state', async ({ page }) => {
+    await page.goto('http://localhost:5173/');
+    
+    // Create a dummy PDF file buffer in memory
+    const dummyPdfContent = Buffer.from('%PDF-1.4\n1 0 obj\n<<>>\nendobj\ntrailer\n<<>>\n%%EOF');
+    
+    // Locate the file input and set the files
+    const fileChooserPromise = page.waitForEvent('filechooser');
+    await page.locator('text=Click to upload PDF').click();
+    const fileChooser = await fileChooserPromise;
+    await fileChooser.setFiles({
+      name: 'dummy_contract.pdf',
+      mimeType: 'application/pdf',
+      buffer: dummyPdfContent
+    });
+    
+    // Verify loading screen appears
+    await expect(page.locator('text=Analyzing Contract...')).toBeVisible();
   });
 
 });

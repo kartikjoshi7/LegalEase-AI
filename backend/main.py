@@ -3,13 +3,12 @@ load_dotenv()
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from routers import health, analyze
+from limiter import limiter
 
 # Initialize Rate Limiter (Token Bucket for Gemini Quota Protection)
-limiter = Limiter(key_func=get_remote_address, default_limits=["5/minute"])
 
 app = FastAPI(
     title="LegalEase AI API",
@@ -32,8 +31,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "OPTIONS", "HEAD"],
+    allow_headers=["Content-Type", "Authorization", "Accept"],
 )
 
 # Include Routers

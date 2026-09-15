@@ -17,5 +17,5 @@ These define the exact JSON boundaries the LLM must follow via the `response_sch
 ## 4. API Specification (Frontend -> Backend)
 
 **POST /api/v1/analyze/risk**
-*   **Request:** `{"document_id": "uuid", "document_text": "Scrubbed string...", "contract_type": "string"}`
-*   **Response:** `{"analysis_id": "uuid", "fairness_score": int, "flagged_clauses": [ClauseRisk + Quads]}`
+*   **Request (`multipart/form-data`):** `file` (PDF binary), `document_id` (string), `document_text` (Scrubbed string), `contract_type` (string), `user_context` (string, optional)
+*   **Response (`application/json`):** `{"analysis_id": "uuid", "fairness_score": int, "executive_summary": "string", "flagged_clauses": [ClauseRisk + Quads]}`

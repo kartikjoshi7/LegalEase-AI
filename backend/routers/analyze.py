@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, UploadFile, File, Form
+from fastapi.concurrency import run_in_threadpool
 from schemas.api_models import (
     AnalyzeRiskRequest, 
     AnalyzeRiskResponse, 
@@ -13,6 +14,7 @@ from schemas.api_models import (
 from services.llm_engine import analyze_document_risk, simplify_legal_jargon, answer_document_question
 from services.pdf_processor import find_exact_quote_coordinates
 import uuid
+from limiter import limiter
 
 router = APIRouter(tags=["Analyze"])
 
@@ -21,6 +23,7 @@ router = APIRouter(tags=["Analyze"])
 DUMMY_PDF_BYTES = b"%PDF-1.4 dummy pdf bytes"
 
 @router.post("/analyze/ask", response_model=AskQuestionResponse)
+@limiter.limit("5/minute")
 async def ask_question(request_data: AskQuestionRequest, request: Request):
     """
     Answers user questions based strictly on the document text.
@@ -33,32 +36,36 @@ async def ask_question(request_data: AskQuestionRequest, request: Request):
     return AskQuestionResponse(answer=answer)
 
 @router.post("/analyze/risk", response_model=AnalyzeRiskResponse)
-async def analyze_risk(request_data: AnalyzeRiskRequest, request: Request):
+@limiter.limit("5/minute")
+async def analyze_risk(
+    request: Request,
+    file: UploadFile = File(...),
+    document_id: str = Form(..., max_length=1000),
+    document_text: str = Form(..., max_length=1000000),
+    contract_type: str = Form(..., max_length=1000),
+    user_context: str | None = Form(None, max_length=10000)
+):
     """
     Core evaluation engine. Analyzes risk and maps coordinates via PyMuPDF.
     """
-    # 1. Send the text to Gemini
+    pdf_bytes = await file.read()
+    
+    # 1. Send the scrubbed text to Gemini
     llm_output = await analyze_document_risk(
-        document_text=request_data.document_text,
-        contract_type=request_data.contract_type,
-        user_context=request_data.user_context
+        document_text=document_text,
+        contract_type=contract_type,
+        user_context=user_context
     )
     
-    # 2. Map coordinates for each flagged clause using PyMuPDF
+    # 2. Map coordinates for each flagged clause using PyMuPDF on the raw file bytes
     flagged_clauses_with_geometry = []
+    
+    def _run_geometry_matching(quote: str):
+        return find_exact_quote_coordinates(pdf_bytes, quote)
+        
     for clause in llm_output.flagged_clauses:
         try:
-            # In a full implementation, we'd fetch the actual uploaded PDF bytes here.
-            # Using DUMMY_PDF_BYTES for architecture scaffolding.
-            # geometry = find_exact_quote_coordinates(DUMMY_PDF_BYTES, clause.exact_quote)
-            
-            # Mocking the geometry response to satisfy the schema without a real PDF
-            geometry = {
-                "page_number": 1,
-                "quads": [
-                    {"ul": [0.0, 0.0], "ur": [10.0, 0.0], "ll": [0.0, 10.0], "lr": [10.0, 10.0]}
-                ]
-            }
+            geometry = await run_in_threadpool(_run_geometry_matching, clause.exact_quote)
             
             # Create Quad objects
             quads_list = [Quad(**q) for q in geometry["quads"]]
@@ -85,6 +92,7 @@ async def analyze_risk(request_data: AnalyzeRiskRequest, request: Request):
     return response
 
 @router.post("/analyze/simplify", response_model=SimplifyResponse)
+@limiter.limit("5/minute")
 async def simplify_jargon(request_data: SimplifyRequest, request: Request):
     """
     Translates dense jargon into 8th-grade reading level.

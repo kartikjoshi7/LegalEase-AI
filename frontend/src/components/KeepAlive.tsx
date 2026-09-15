@@ -15,7 +15,7 @@ export default function KeepAlive() {
     const pingBackend = async () => {
       try {
         await apiClient.get('/health');
-        console.log('[System] Keep-alive ping successful');
+        // Successfully pinged
       } catch (error) {
         console.warn('[System] Keep-alive ping failed', error);
       }

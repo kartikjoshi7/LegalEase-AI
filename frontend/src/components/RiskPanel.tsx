@@ -67,8 +67,9 @@ export default function RiskPanel({ fairnessScore, executiveSummary, flaggedClau
     try {
       const response = await import('../api/client').then(m => m.apiClient.askQuestion("doc_id", documentText, userMessage));
       setMessages(prev => [...prev, { role: 'ai', content: response.answer }]);
-    } catch (err: any) {
-      setMessages(prev => [...prev, { role: 'ai', content: err.message || "Sorry, I encountered an error while analyzing the document." }]);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Sorry, I encountered an error while analyzing the document.";
+      setMessages(prev => [...prev, { role: 'ai', content: errorMessage }]);
     } finally {
       setIsAsking(false);
     }

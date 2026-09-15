@@ -45,7 +45,7 @@ export const apiClient = {
     return response.json();
   },
 
-  async post(endpoint: string, body: any) {
+  async post(endpoint: string, body: Record<string, unknown>) {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'POST',
       headers: {
@@ -57,6 +57,19 @@ export const apiClient = {
     if (!response.ok) {
       const errorData = await response.json().catch(() => null);
       throw new Error(errorData?.message || `API Error: ${response.statusText}`);
+    }
+    return response.json();
+  },
+
+  async postFormData(endpoint: string, formData: FormData) {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || errorData?.detail?.[0]?.msg || `API Error: ${response.statusText}`);
     }
     return response.json();
   }

@@ -46,12 +46,14 @@ export default function LandingHub() {
         
         setDocumentText(scrubbedText);
 
-        const response = await apiClient.post('/analyze/risk', {
-          document_id: file.name,
-          document_text: scrubbedText,
-          contract_type: 'generic_contract',
-          user_context: userContext
-        });
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('document_id', file.name);
+        formData.append('document_text', scrubbedText);
+        formData.append('contract_type', 'generic_contract');
+        formData.append('user_context', userContext);
+
+        const response = await apiClient.postFormData('/analyze/risk', formData);
         
         setRiskData({
           fairnessScore: response.fairness_score,
@@ -61,9 +63,10 @@ export default function LandingHub() {
         
         navigate('/workspace/latest');
         
-      } catch (err: any) {
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : "Failed to analyze document.";
         console.error("API Error:", err);
-        setError(err.message || "Failed to analyze document.");
+        setError(errorMessage);
         navigate('/workspace/latest'); // navigate anyway to show the error state in the workspace
       } finally {
         setIsLoading(false);

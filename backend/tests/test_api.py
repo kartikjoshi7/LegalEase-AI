@@ -9,24 +9,34 @@ async def test_health_check():
     assert response.status_code == 200
     assert response.json()["status"] == "active"
 
+from unittest.mock import patch
+
 @pytest.mark.asyncio
-async def test_analyze_risk_mock():
+@patch('routers.analyze.find_exact_quote_coordinates')
+async def test_analyze_risk_mock(mock_find):
+    mock_find.return_value = {
+        "page_number": 1,
+        "quads": [{"ul": [0,0], "ur": [10,0], "ll": [0,10], "lr": [10,10]}]
+    }
     # We rely on the GEMINI_API_KEY being missing to trigger the mock in llm_engine.py
     # or we can patch os.environ.
-    payload = {
+    data = {
         "document_id": "test.pdf",
         "document_text": "Tenant agrees to indemnify and hold Landlord harmless",
-        "contract_type": "generic_contract"
+        "contract_type": "generic_contract",
+        "user_context": ""
     }
+    files = {'file': ('dummy.pdf', b'%PDF-1.4', 'application/pdf')}
+    
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        response = await ac.post("/api/v1/analyze/risk", json=payload)
+        response = await ac.post("/api/v1/analyze/risk", data=data, files=files)
     
     assert response.status_code == 200
-    data = response.json()
-    assert "fairness_score" in data
-    assert "executive_summary" in data
-    assert "flagged_clauses" in data
-    assert len(data["flagged_clauses"]) > 0
+    res_data = response.json()
+    assert "fairness_score" in res_data
+    assert "executive_summary" in res_data
+    assert "flagged_clauses" in res_data
+    assert len(res_data["flagged_clauses"]) > 0
 
 @pytest.mark.asyncio
 async def test_rate_limiter():
@@ -42,12 +52,14 @@ async def test_rate_limiter():
 @pytest.mark.asyncio
 async def test_analyze_risk_validation_error():
     # Missing required field "document_text"
-    payload = {
+    data = {
         "document_id": "test.pdf",
         "contract_type": "generic_contract"
     }
+    files = {'file': ('dummy.pdf', b'%PDF-1.4', 'application/pdf')}
+    
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        response = await ac.post("/api/v1/analyze/risk", json=payload)
+        response = await ac.post("/api/v1/analyze/risk", data=data, files=files)
     
     assert response.status_code == 422 # Unprocessable Entity
 
