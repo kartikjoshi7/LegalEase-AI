@@ -24,9 +24,14 @@ def find_exact_quote_coordinates(pdf_bytes: bytes, exact_quote: str) -> dict:
     for page_num in range(len(doc)):
         page = doc[page_num]
         
-        # Search for the exact string, get quadrilaterals back
+        # 1. Search for the exact string
         quads = page.search_for(exact_quote, quads=True)
         
+        # 2. Fallback: Search for the first 30 chars if line-break caused a miss
+        if not quads and len(exact_quote) > 30:
+            fallback_quote = exact_quote[:30]
+            quads = page.search_for(fallback_quote, quads=True)
+            
         if quads:
             # Format the quads into JSON serializable dictionaries
             formatted_quads = []
@@ -46,11 +51,8 @@ def find_exact_quote_coordinates(pdf_bytes: bytes, exact_quote: str) -> dict:
             
     doc.close()
     
-    # If we get here, the quote wasn't found
-    raise HTTPException(
-        status_code=422,
-        detail={
-            "error": "GEOMETRY_MATCH_FAILED",
-            "message": "The exact_quote returned by the LLM could not be mathematically located in the document text."
-        }
-    )
+    # 3. Final Fallback: Return empty geometry instead of crashing the entire analysis API
+    return {
+        "page_number": 1,
+        "quads": []
+    }

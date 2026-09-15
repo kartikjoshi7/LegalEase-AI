@@ -1,12 +1,12 @@
-export async function extractTextFromPDF(file: File): Promise<string> {
-  const { pdfjs } = await import('react-pdf');
-  
-  // Ensure the worker is set up for parsing PDFs
-  pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-    'pdfjs-dist/build/pdf.worker.min.mjs',
-    import.meta.url,
-  ).toString();
+import { pdfjs } from 'react-pdf';
 
+// Ensure the worker is set up for parsing PDFs
+pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+  'pdfjs-dist/build/pdf.worker.min.mjs',
+  import.meta.url,
+).toString();
+
+export async function extractTextFromPDF(file: File): Promise<string> {
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
   
