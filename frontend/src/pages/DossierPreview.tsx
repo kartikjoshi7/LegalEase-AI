@@ -22,7 +22,7 @@ export default function DossierPreview() {
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-slate-50 print:bg-white overflow-y-auto print:overflow-visible relative">
+    <div className="w-full h-full bg-slate-50 print:bg-white overflow-y-auto print:overflow-visible relative">
       
       {/* Floating Action Bar */}
       <div className="print:hidden sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200 px-8 py-4 flex items-center justify-between shadow-sm">
@@ -41,7 +41,7 @@ export default function DossierPreview() {
       </div>
 
       {/* A4 Print Layout Container */}
-      <div className="max-w-4xl w-full mx-auto my-12 print:my-0 bg-white shadow-2xl print:shadow-none ring-1 ring-slate-200 print:ring-0 p-16 print:p-0 min-h-[1056px] print:min-h-0">
+      <div className="max-w-4xl w-full mx-auto my-12 print:my-0 bg-white shadow-2xl print:shadow-none ring-1 ring-slate-200 print:ring-0 p-16 print:p-0 min-h-[1056px] h-fit print:min-h-0">
         
         {/* Dossier Header */}
         <div className="border-b-4 border-slate-900 pb-8 mb-12">

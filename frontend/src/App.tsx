@@ -1,5 +1,6 @@
 import { useState, Suspense, lazy } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 import KeepAlive from './components/KeepAlive';
 import LandingHub from './pages/LandingHub';
 
@@ -9,6 +10,7 @@ import { Menu, X, UploadCloud } from 'lucide-react';
 
 function App() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
@@ -53,11 +55,25 @@ function App() {
             <div className="w-10 h-10 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin"></div>
           </div>
         }>
-          <Routes>
-            <Route path="/" element={<LandingHub />} />
-            <Route path="/workspace/:id" element={<Workspace />} />
-            <Route path="/dossier/:id" element={<DossierPreview />} />
-          </Routes>
+          <AnimatePresence mode="wait">
+            <Routes location={location} key={location.pathname}>
+              <Route path="/" element={
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }} className="flex flex-col flex-1 w-full h-full">
+                  <LandingHub />
+                </motion.div>
+              } />
+              <Route path="/workspace/:id" element={
+                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }} className="flex flex-col flex-1 w-full h-full overflow-hidden">
+                  <Workspace />
+                </motion.div>
+              } />
+              <Route path="/dossier/:id" element={
+                <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} transition={{ duration: 0.3 }} className="flex flex-col flex-1 w-full h-full overflow-hidden">
+                  <DossierPreview />
+                </motion.div>
+              } />
+            </Routes>
+          </AnimatePresence>
         </Suspense>
       </main>
     </div>

@@ -12,7 +12,12 @@ const loadingMessages = [
   "Scrubbing PII securely on edge...",
   "Auditing clauses against legal baselines...",
   "Drafting balanced counter-proposals...",
-  "Generating Attorney Dossier..."
+  "Generating Attorney Dossier...",
+  "High traffic detected, optimizing request...",
+  "Retrying AI analysis (Google Gemini API)...",
+  "Hold tight, finalizing legal insights...",
+  "Navigating API rate limits...",
+  "Almost there, formatting risk assessment..."
 ];
 
 /**

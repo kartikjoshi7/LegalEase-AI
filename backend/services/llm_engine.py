@@ -11,8 +11,62 @@ from google import genai
 from google.genai import types
 from schemas.api_models import RiskAnalysisLLMOutput, SimplificationLLMOutput
 from fastapi import HTTPException
+from pydantic import ValidationError
 
 logger = logging.getLogger("legalease.llm_engine")
+
+import time
+import asyncio
+
+def _sanitize_xml(text: str) -> str:
+    """Escapes XML tags to prevent prompt injection."""
+    if not text:
+        return text
+    return text.replace("<", "&lt;").replace(">", "&gt;")
+
+def _generate_with_retry(gemini_client, model: str, contents: str, config: types.GenerateContentConfig, max_retries: int = 6):
+    """
+    Executes a Gemini API call with exponential backoff and automatic model fallback.
+    If a 429 RESOURCE_EXHAUSTED occurs, it shifts to the next model in the chain to bypass quotas.
+    """
+    base_delay = 5.0  # start with 5 seconds
+    
+    # Ensure the requested model is first, then fall back to others available in Google AI Studio
+    fallback_chain = [
+        model,
+        'gemini-3.5-flash',
+        'gemini-3.8-flash'
+    ]
+    
+    for attempt in range(max_retries):
+        current_model = fallback_chain[attempt % len(fallback_chain)]
+        
+        try:
+            response = gemini_client.models.generate_content(
+                model=current_model,
+                contents=contents,
+                config=config,
+            )
+            return response
+        except Exception as e:
+            error_msg = str(e)
+            is_rate_limit = "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg or "quota" in error_msg.lower()
+            is_unavailable = "503" in error_msg or "UNAVAILABLE" in error_msg
+            
+            if is_rate_limit or is_unavailable:
+                if attempt < max_retries - 1:
+                    next_model = fallback_chain[(attempt + 1) % len(fallback_chain)]
+                    reason = "rate limit" if is_rate_limit else "capacity limit (503)"
+                    
+                    # Fallback instantly if jumping to a new model; only backoff if we've exhausted all models once
+                    delay = 1.0 if attempt < len(fallback_chain) else 5.0
+                    
+                    logger.warning(f"Gemini {current_model} hit {reason}! Falling back to {next_model} in {delay} seconds (Attempt {attempt + 1}/{max_retries})...")
+                    time.sleep(delay)
+                    continue
+            # If not a rate limit error, or we ran out of retries, raise it
+            raise e
+
 
 # Initialize Gemini Client (Requires GEMINI_API_KEY env var)
 client = None
@@ -53,8 +107,9 @@ async def analyze_document_risk(document_text: str, contract_type: str, user_con
     
     context_directive = ""
     if user_context:
+        safe_context = _sanitize_xml(user_context)
         context_directive = f"""
-    CRITICAL INSTRUCTION: Analyze this contract from the explicit perspective of the user: "{user_context}".
+    CRITICAL INSTRUCTION: Analyze this contract from the explicit perspective of the user: "{safe_context}".
     The Fairness Score, Executive Summary, and Auto-Draft Solutions MUST be aggressively tailored to protect this specific party's interests. 
     If a clause harms the user's stated interests, flag it as High/Critical. 
     Counter-drafts must neutralize the risk for this specific user.
@@ -83,24 +138,34 @@ async def analyze_document_risk(document_text: str, contract_type: str, user_con
     }}
     
     <document_under_review>
-    {document_text}
+    {_sanitize_xml(document_text)}
     </document_under_review>
     """
     
     try:
-        response = gemini_client.models.generate_content(
+        response = _generate_with_retry(
+            gemini_client=gemini_client,
             model='gemini-2.5-flash',
             contents=prompt,
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",
                 temperature=0.1, # Low temp for deterministic legal output
-            ),
+            )
         )
         
         # Pydantic validation handles parsing
         result = RiskAnalysisLLMOutput.model_validate_json(response.text)
         return result
         
+    except ValidationError as ve:
+        logger.error(f"Gemini returned invalid JSON for risk analysis. Raw response:\n{response.text}\nValidationError: {ve}")
+        raise HTTPException(
+            status_code=502,
+            detail={
+                "error": "LLM_VALIDATION_FAILED",
+                "message": "The AI returned an unstructured response. Please try again."
+            }
+        )
     except Exception as e:
         error_msg = str(e)
         logger.error("Gemini risk analysis failed: %s", error_msg, exc_info=True)
@@ -134,23 +199,33 @@ async def simplify_legal_jargon(target_text: str) -> SimplificationLLMOutput:
     }}
     
     <clause>
-    {target_text}
+    {_sanitize_xml(target_text)}
     </clause>
     """
     
     try:
-        response = gemini_client.models.generate_content(
+        response = _generate_with_retry(
+            gemini_client=gemini_client,
             model='gemini-2.5-flash',
             contents=prompt,
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",
                 temperature=0.2,
-            ),
+            )
         )
         
         result = SimplificationLLMOutput.model_validate_json(response.text)
         return result
         
+    except ValidationError as ve:
+        logger.error(f"Gemini returned invalid JSON for simplification. Raw response:\n{response.text}\nValidationError: {ve}")
+        raise HTTPException(
+            status_code=502,
+            detail={
+                "error": "LLM_VALIDATION_FAILED",
+                "message": "The AI returned an unstructured response. Please try again."
+            }
+        )
     except Exception as e:
         error_msg = str(e)
         friendly_message = "The generative AI engine returned an unstructured or malformed response."
@@ -185,21 +260,22 @@ async def answer_document_question(document_text: str, question: str) -> str:
     4. Provide your answer in clear, concise plain English. Do not provide formal legal advice.
     
     <user_question>
-    {question}
+    {_sanitize_xml(question)}
     </user_question>
     
     <document>
-    {document_text}
+    {_sanitize_xml(document_text)}
     </document>
     """
     
     try:
-        response = gemini_client.models.generate_content(
+        response = _generate_with_retry(
+            gemini_client=gemini_client,
             model='gemini-2.5-flash',
             contents=prompt,
             config=types.GenerateContentConfig(
                 temperature=0.1,
-            ),
+            )
         )
         
         return response.text

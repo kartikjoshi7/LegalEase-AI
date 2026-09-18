@@ -12,14 +12,13 @@ async def test_health_check():
 from unittest.mock import patch
 
 @pytest.mark.asyncio
+@patch.dict('os.environ', {}, clear=True)
 @patch('routers.analyze.find_exact_quote_coordinates')
 async def test_analyze_risk_mock(mock_find):
     mock_find.return_value = {
         "page_number": 1,
         "quads": [{"ul": [0,0], "ur": [10,0], "ll": [0,10], "lr": [10,10]}]
     }
-    # We rely on the GEMINI_API_KEY being missing to trigger the mock in llm_engine.py
-    # or we can patch os.environ.
     data = {
         "document_id": "test.pdf",
         "document_text": "Tenant agrees to indemnify and hold Landlord harmless",

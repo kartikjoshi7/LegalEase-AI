@@ -228,7 +228,7 @@ export default React.memo(function PDFViewer({ pdfFile, hoveredClauseId }: PDFVi
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.3, ease: 'easeOut' }}
-              className="absolute pointer-events-none z-50 transition-all duration-300 ease-out"
+              className="absolute pointer-events-none z-50"
               style={highlightStyle}
             >
               <div className="absolute inset-0 bg-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.5)] border border-blue-400 rounded" />

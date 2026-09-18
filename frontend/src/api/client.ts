@@ -56,7 +56,8 @@ export const apiClient = {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => null);
-      throw new Error(errorData?.message || `API Error: ${response.statusText}`);
+      const errorMsg = errorData?.detail?.message || errorData?.message || (Array.isArray(errorData?.detail) ? errorData.detail[0]?.msg : null) || `API Error: ${response.statusText}`;
+      throw new Error(errorMsg);
     }
     return response.json();
   },
@@ -69,7 +70,8 @@ export const apiClient = {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => null);
-      throw new Error(errorData?.message || errorData?.detail?.[0]?.msg || `API Error: ${response.statusText}`);
+      const errorMsg = errorData?.detail?.message || errorData?.message || (Array.isArray(errorData?.detail) ? errorData.detail[0]?.msg : null) || `API Error: ${response.statusText}`;
+      throw new Error(errorMsg);
     }
     return response.json();
   }

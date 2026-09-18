@@ -9,7 +9,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import logging
+import time
 from fastapi import FastAPI, Request, Response
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
@@ -41,6 +43,38 @@ async def add_security_headers(request: Request, call_next) -> Response:
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
     return response
+
+# ============================================================
+# Request Logging Middleware
+# ============================================================
+@app.middleware("http")
+async def log_requests(request: Request, call_next) -> Response:
+    """Logs incoming requests and their execution time."""
+    start_time = time.time()
+    try:
+        response = await call_next(request)
+        process_time = time.time() - start_time
+        logger.info(f"{request.method} {request.url.path} - {response.status_code} - {process_time:.3f}s")
+        return response
+    except Exception as exc:
+        process_time = time.time() - start_time
+        logger.error(f"{request.method} {request.url.path} - 500 INTERNAL SERVER ERROR - {process_time:.3f}s")
+        raise exc
+
+# ============================================================
+# Global Exception Handler
+# ============================================================
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """Catches all unhandled exceptions to prevent stack trace leaks."""
+    logger.error(f"Unhandled Exception: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": "INTERNAL_SERVER_ERROR",
+            "message": "An unexpected error occurred on the server."
+        }
+    )
 
 # ============================================================
 # Rate Limiter Configuration (Token Bucket for Gemini Quota Protection)

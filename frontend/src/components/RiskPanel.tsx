@@ -26,6 +26,7 @@ import {
   PolarAngleAxis, 
   ResponsiveContainer 
 } from 'recharts';
+import ReactMarkdown from 'react-markdown';
 
 interface ClauseRisk {
   clause_type: string;
@@ -54,9 +55,31 @@ export default React.memo(function RiskPanel({ fairnessScore, executiveSummary, 
   const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState<{role: 'user' | 'ai', content: string}[]>([]);
   const [isAsking, setIsAsking] = useState(false);
-  const { documentText } = useAppContext();
+  const [askMessageIndex, setAskMessageIndex] = useState(0);
+  const { documentText, error } = useAppContext();
   
   const navigate = useNavigate();
+
+  const chatLoadingMessages = [
+    "Analyzing document context...",
+    "Querying legal knowledge base...",
+    "High traffic detected, optimizing request...",
+    "Retrying AI synthesis (Google Gemini API)...",
+    "Hold tight, formulating answer...",
+    "Navigating API rate limits..."
+  ];
+
+  // Rotate messages when asking
+  React.useEffect(() => {
+    if (isAsking) {
+      const interval = setInterval(() => {
+        setAskMessageIndex(prev => (prev + 1) % chatLoadingMessages.length);
+      }, 3000);
+      return () => clearInterval(interval);
+    } else {
+      setAskMessageIndex(0);
+    }
+  }, [isAsking]);
 
   const handleAskQuestion = async () => {
     if (!question.trim() || !documentText) return;
@@ -121,6 +144,24 @@ export default React.memo(function RiskPanel({ fairnessScore, executiveSummary, 
       fullMark: 10,
     }));
   };
+
+  if (error) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center p-8 text-center bg-white/40">
+        <div className="bg-amber-50/80 backdrop-blur text-amber-800 p-8 rounded-3xl w-full shadow-lg border border-amber-200/60 max-w-sm">
+          <AlertCircle className="w-14 h-14 mx-auto mb-5 text-amber-500 opacity-90" />
+          <h2 className="text-xl font-black tracking-tight mb-3 uppercase text-amber-900">System Busy</h2>
+          <p className="font-medium text-sm text-amber-700/90 leading-relaxed mb-8">{error}</p>
+          <button 
+            onClick={() => navigate('/')}
+            className="w-full py-3.5 bg-amber-500 text-white rounded-xl font-bold hover:bg-amber-600 transition-colors shadow-md hover:shadow-lg active:scale-95"
+          >
+            Go Back & Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (fairnessScore === null) {
     return (
@@ -214,7 +255,8 @@ export default React.memo(function RiskPanel({ fairnessScore, executiveSummary, 
                   transition={{ delay: idx * 0.05 }}
                   onMouseEnter={() => setHoveredClauseId(idx.toString())}
                   onMouseLeave={() => setHoveredClauseId(null)}
-                  className={`rounded-2xl border transition-all duration-300 ${getSeverityColor(clause.severity)} ${hoveredClauseId === idx.toString() ? 'ring-2 ring-blue-400 ring-offset-2 shadow-lg -translate-y-1' : 'shadow-sm hover:shadow-md'}`}
+                  whileHover={{ y: -4 }}
+                  className={`rounded-2xl border ${getSeverityColor(clause.severity)} ${hoveredClauseId === idx.toString() ? 'ring-2 ring-blue-400 ring-offset-2 shadow-lg' : 'shadow-sm'}`}
                 >
                   <div className="p-4 cursor-pointer flex items-start gap-3" onClick={() => toggleCard(idx)}>
                     <div className="mt-0.5 shrink-0 bg-white p-1.5 rounded-lg shadow-sm">
@@ -315,12 +357,22 @@ export default React.memo(function RiskPanel({ fairnessScore, executiveSummary, 
                         </div>
                       )}
                       
-                      <div className={`p-3.5 rounded-2xl text-sm font-medium leading-relaxed shadow-sm ${
+                      <div className={`p-4 rounded-2xl text-sm font-medium leading-relaxed shadow-sm ${
                         msg.role === 'user' 
                           ? 'bg-indigo-600 text-white rounded-tr-sm' 
                           : 'bg-white border border-slate-200/60 text-slate-700 rounded-tl-sm'
                       }`}>
-                        {msg.content}
+                        {msg.role === 'ai' ? (
+                          <div className="prose prose-sm prose-slate max-w-none 
+                            prose-p:leading-relaxed prose-p:mb-2 last:prose-p:mb-0 
+                            prose-ul:my-2 prose-ul:pl-4 
+                            prose-li:my-0.5 
+                            prose-strong:font-bold prose-strong:text-slate-800">
+                            <ReactMarkdown>{msg.content}</ReactMarkdown>
+                          </div>
+                        ) : (
+                          msg.content
+                        )}
                       </div>
                     </motion.div>
                   ))}
@@ -334,9 +386,22 @@ export default React.memo(function RiskPanel({ fairnessScore, executiveSummary, 
                         <Zap className="w-3 h-3 text-indigo-500" />
                         <span className="text-[9px] font-black uppercase tracking-widest text-indigo-500">LegalEase AI</span>
                       </div>
-                      <div className="p-4 rounded-2xl bg-white border border-slate-200/60 rounded-tl-sm shadow-sm flex items-center gap-2">
-                        <Loader2 className="w-4 h-4 text-indigo-400 animate-spin" />
-                        <span className="text-xs text-slate-400 font-bold">Analyzing document...</span>
+                      <div className="p-4 rounded-2xl bg-white border border-slate-200/60 rounded-tl-sm shadow-sm flex items-center gap-3 overflow-hidden">
+                        <Loader2 className="w-4 h-4 text-indigo-400 animate-spin shrink-0" />
+                        <div className="h-4 relative w-48 flex items-center overflow-hidden">
+                          <AnimatePresence mode="popLayout">
+                            <motion.span
+                              key={askMessageIndex}
+                              initial={{ y: 15, opacity: 0 }}
+                              animate={{ y: 0, opacity: 1 }}
+                              exit={{ y: -15, opacity: 0 }}
+                              transition={{ duration: 0.3 }}
+                              className="text-[11px] text-slate-500 font-bold absolute w-full"
+                            >
+                              {chatLoadingMessages[askMessageIndex]}
+                            </motion.span>
+                          </AnimatePresence>
+                        </div>
                       </div>
                     </motion.div>
                   )}
@@ -345,8 +410,8 @@ export default React.memo(function RiskPanel({ fairnessScore, executiveSummary, 
             </div>
             
             {/* Input Area */}
-            <div className="shrink-0 pt-4 border-t border-slate-200/50 bg-transparent -mx-6 px-6 -mb-6 pb-0">
-              <div className="relative">
+            <div className="shrink-0 pt-4 bg-transparent mt-2">
+              <div className="relative shadow-sm rounded-2xl group border border-slate-200 focus-within:border-indigo-500 focus-within:ring-4 focus-within:ring-indigo-500/20 transition-all">
                 <textarea
                   value={question}
                   onChange={(e) => setQuestion(e.target.value)}
@@ -357,13 +422,13 @@ export default React.memo(function RiskPanel({ fairnessScore, executiveSummary, 
                     }
                   }}
                   placeholder="Ask a question..."
-                  className="w-full bg-white border border-slate-200 rounded-2xl py-3.5 pl-4 pr-12 text-sm text-slate-700 font-medium placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none shadow-sm h-[52px] leading-tight"
+                  className="w-full bg-white rounded-2xl py-3.5 pl-4 pr-12 text-sm text-slate-700 font-medium placeholder:text-slate-400 focus:outline-none resize-none h-[52px] leading-tight"
                   disabled={isAsking}
                 />
                 <button
                   onClick={handleAskQuestion}
                   disabled={isAsking || !question.trim()}
-                  className="absolute right-1.5 top-1.5 bottom-1.5 w-[40px] bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50 disabled:hover:bg-indigo-600 transition-colors flex items-center justify-center shadow-sm"
+                  className="absolute right-1.5 top-1.5 bottom-1.5 w-[40px] bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50 disabled:hover:bg-indigo-600 transition-all flex items-center justify-center"
                 >
                   <Send className="w-4 h-4" />
                 </button>
