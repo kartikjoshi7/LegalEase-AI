@@ -1,40 +1,67 @@
+"""
+PDF Processing service for the LegalEase AI backend.
+
+Provides deterministic text extraction and geometric coordinate mapping
+using PyMuPDF (fitz). All operations execute entirely in-memory using
+byte streams to ensure zero disk I/O and zero data persistence.
+"""
 import fitz  # PyMuPDF
-from fastapi import HTTPException
-import io
+from typing import Dict, List, Any
+import logging
+
+logger = logging.getLogger("legalease.pdf_processor")
+
 
 def extract_text_from_pdf(pdf_bytes: bytes) -> str:
     """
-    Extracts raw text from a PDF file.
+    Extract raw text content from a PDF byte stream.
+
+    Args:
+        pdf_bytes: Raw PDF file bytes read from the upload.
+
+    Returns:
+        Concatenated plain text from all pages of the PDF.
     """
     doc = fitz.open(stream=pdf_bytes, filetype="pdf")
-    text = ""
+    text: str = ""
     for page in doc:
         text += page.get_text()
     doc.close()
     return text
 
-def find_exact_quote_coordinates(pdf_bytes: bytes, exact_quote: str) -> dict:
+
+def find_exact_quote_coordinates(pdf_bytes: bytes, exact_quote: str) -> Dict[str, Any]:
     """
-    Deterministically finds the bounding box coordinates (quads) for a given text quote.
-    Throws a 422 GEOMETRY_MATCH_FAILED if the quote cannot be found.
+    Deterministically locate the bounding box coordinates (quads) for a text quote.
+
+    Uses PyMuPDF's search engine to find the exact substring on each page.
+    Falls back to a prefix search (first 30 characters) if line-breaks cause
+    an exact match miss. Returns empty geometry instead of crashing if the
+    quote cannot be located.
+
+    Args:
+        pdf_bytes: Raw PDF file bytes.
+        exact_quote: The exact text string to locate in the document.
+
+    Returns:
+        Dictionary containing 'page_number' (1-indexed) and 'quads' list.
+        Each quad contains 'ul', 'ur', 'll', 'lr' corner coordinates.
     """
     doc = fitz.open(stream=pdf_bytes, filetype="pdf")
-    
-    # We will search page by page
+
     for page_num in range(len(doc)):
         page = doc[page_num]
-        
+
         # 1. Search for the exact string
-        quads = page.search_for(exact_quote, quads=True)
-        
+        quads: List[fitz.Quad] = page.search_for(exact_quote, quads=True)
+
         # 2. Fallback: Search for the first 30 chars if line-break caused a miss
         if not quads and len(exact_quote) > 30:
-            fallback_quote = exact_quote[:30]
+            fallback_quote: str = exact_quote[:30]
             quads = page.search_for(fallback_quote, quads=True)
-            
+
         if quads:
-            # Format the quads into JSON serializable dictionaries
-            formatted_quads = []
+            formatted_quads: List[Dict[str, List[float]]] = []
             for q in quads:
                 formatted_quads.append({
                     "ul": [q.ul.x, q.ul.y],
@@ -42,16 +69,18 @@ def find_exact_quote_coordinates(pdf_bytes: bytes, exact_quote: str) -> dict:
                     "ll": [q.ll.x, q.ll.y],
                     "lr": [q.lr.x, q.lr.y]
                 })
-            
+
             doc.close()
+            logger.info("Geometry match found on page %d for quote: '%.30s...'", page_num + 1, exact_quote)
             return {
                 "page_number": page_num + 1,
                 "quads": formatted_quads
             }
-            
+
     doc.close()
-    
-    # 3. Final Fallback: Return empty geometry instead of crashing the entire analysis API
+
+    # 3. Final Fallback: Return empty geometry instead of crashing the analysis API
+    logger.warning("No geometry match found for quote: '%.50s...'", exact_quote)
     return {
         "page_number": 1,
         "quads": []

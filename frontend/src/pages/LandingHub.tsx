@@ -21,7 +21,7 @@ const loadingMessages = [
  * Applies accessibility roles and strictly limits PII exposure via on-device scrubbing.
  * @returns React Component
  */
-export default function LandingHub() {
+export default React.memo(function LandingHub() {
   const { setPdfFile, setIsLoading, setRiskData, setError, isLoading, setDocumentText } = useAppContext();
   const navigate = useNavigate();
   const [messageIndex, setMessageIndex] = useState(0);
@@ -222,4 +222,4 @@ export default function LandingHub() {
       )}
     </div>
   );
-}
+});

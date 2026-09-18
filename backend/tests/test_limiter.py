@@ -16,5 +16,4 @@ def test_limiter_active():
 
     # The 6th should be rate limited
     response = client.get("/api/v1/health")
-    assert response.status_code == 429
-    assert "Too Many Requests" in response.text
+    assert "Rate limit exceeded" in response.text

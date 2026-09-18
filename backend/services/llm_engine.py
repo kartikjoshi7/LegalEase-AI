@@ -1,8 +1,18 @@
+"""
+LLM Engine service for the LegalEase AI backend.
+
+Manages all interactions with the Google Gemini API (gemini-2.5-flash)
+for legal document analysis, clause simplification, and contextual Q&A.
+Enforces strict Pydantic schema validation on all generative outputs.
+"""
 import os
+import logging
 from google import genai
 from google.genai import types
 from schemas.api_models import RiskAnalysisLLMOutput, SimplificationLLMOutput
 from fastapi import HTTPException
+
+logger = logging.getLogger("legalease.llm_engine")
 
 # Initialize Gemini Client (Requires GEMINI_API_KEY env var)
 client = None
@@ -12,9 +22,7 @@ def get_gemini_client():
     if client is None:
         api_key = os.environ.get("GEMINI_API_KEY")
         if not api_key:
-            # During development without a key, we might mock this, 
-            # but for production it's required.
-            print("WARNING: GEMINI_API_KEY environment variable is not set.")
+            logger.warning("GEMINI_API_KEY environment variable is not set.")
         client = genai.Client(api_key=api_key)
     return client
 
@@ -25,7 +33,7 @@ async def analyze_document_risk(document_text: str, contract_type: str, user_con
     """
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
-        print("WARNING: GEMINI_API_KEY missing. Returning mock data for UI testing.")
+        logger.warning("GEMINI_API_KEY missing. Returning mock data for UI testing.")
         # Return mock data matching the schema so the UI doesn't crash during testing
         return RiskAnalysisLLMOutput(
             fairness_score=42,
@@ -94,10 +102,8 @@ async def analyze_document_risk(document_text: str, contract_type: str, user_con
         return result
         
     except Exception as e:
-        import traceback
-        traceback.print_exc()
         error_msg = str(e)
-        print(f"ACTUAL GEMINI ERROR: {error_msg}")
+        logger.error("Gemini risk analysis failed: %s", error_msg, exc_info=True)
         
         friendly_message = "The generative AI engine failed to analyze the document."
         if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg or "quota" in error_msg.lower():
@@ -199,10 +205,8 @@ async def answer_document_question(document_text: str, question: str) -> str:
         return response.text
         
     except Exception as e:
-        import traceback
-        traceback.print_exc()
         error_msg = str(e)
-        print(f"ACTUAL GEMINI ERROR: {error_msg}")
+        logger.error("Gemini Q&A failed: %s", error_msg, exc_info=True)
         
         friendly_message = "I'm sorry, I encountered an unexpected error while answering your question."
         if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg or "quota" in error_msg.lower():
