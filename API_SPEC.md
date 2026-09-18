@@ -2,16 +2,18 @@
 
 ## Global Configuration & Rules
 
-- **Base URL (Production):** `https://api.legalease-ai.onrender.com`
+- **Base URL (Production):** `https://legalease-ai-tcr9.onrender.com`
 - **Base URL (Development):** `http://localhost:8000`
 - **Authentication:** None. Zero-friction access for immediate analysis.
-- **CORS:** Strictly restricted to the Vercel production frontend and localhost.
-- **Data Privacy (REQ-EVAL-001):** The frontend MUST execute client-side regex-based PII scrubbing (masking names, SSNs, addresses, phone numbers) before sending `document_text` to ANY of these endpoints.
+- **CORS:** Strictly restricted to the Vercel production frontend (`https://legal-ease-ai-snowy.vercel.app`) and localhost development origins.
+- **Security Headers:** Every response includes `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, and `Permissions-Policy: camera=(), microphone=(), geolocation=()`.
+- **Rate Limiting:** IP-based token bucket via SlowAPI (5 requests per minute per IP).
+- **Data Privacy:** The frontend MUST execute client-side regex-based PII scrubbing (masking names, SSNs, addresses, phone numbers) before sending `document_text` to ANY endpoint.
 - **Error Standard:** All errors strictly follow the uniform `{"error": "CODE", "message": "Human readable"}` JSON format.
 
 ## 1. System Health & Keep-Alive
 
-Prevents the Render free-tier container from cold-starting. Pinged every 5 minutes by the React frontend.
+Prevents the Render free-tier container from cold-starting. Pinged every 5 minutes by the React frontend `KeepAlive` component.
 
 **`GET /api/v1/health`**
 
@@ -22,10 +24,13 @@ Prevents the Render free-tier container from cold-starting. Pinged every 5 minut
 ```json
 {
   "status": "active",
-  "timestamp": "2026-09-13T19:45:30Z",
+  "timestamp": "2026-09-18T19:45:30+00:00",
   "gemini_api": "connected"
 }
 ```
+
+*Response Headers:*
+- `Cache-Control: public, max-age=60, stale-while-revalidate=30`
 
 ## 2. Document Risk Analysis & Visual Heatmap
 
@@ -66,9 +71,9 @@ The core evaluation engine. Identifies asymmetrical liabilities and maps them to
 }
 ```
 
-## 3. Bilingual Jargon Simplifier
+## 3. Clause Simplification (Simplifying Complex Legal Documents)
 
-Translates dense, unflagged legal jargon into an 8th-grade reading level. Triggered when a user clicks a specific paragraph in the UI they want to understand.
+Translates dense legal jargon into an 8th-grade reading level. Triggered when a user selects a specific clause in the UI they want to understand.
 
 **`POST /api/v1/analyze/simplify`**
 
@@ -90,11 +95,11 @@ Translates dense, unflagged legal jargon into an 8th-grade reading level. Trigge
 }
 ```
 
-## 4. Differential Contract Auditing (Statutory Diffing)
+## 4. Contextual Q&A (Answering Questions Based on Provided Legal Documents)
 
-Compares an uploaded contract against standard, fair baselines to detect missing consumer protections or unilateral biases.
+Answers user questions that are strictly grounded in the uploaded document text. Prevents hallucinations and off-topic responses by scoping answers to the provided document context.
 
-**`POST /api/v1/analyze/compare`**
+**`POST /api/v1/analyze/ask`**
 
 *Request Headers:* `Content-Type: application/json`
 
@@ -103,59 +108,18 @@ Compares an uploaded contract against standard, fair baselines to detect missing
 {
   "document_id": "doc_123abc",
   "document_text": "...",
-  "baseline_category": "freelance_nda",
-  "jurisdiction": "Generic_US"
+  "question": "Can the landlord enter my apartment without notice?"
 }
 ```
 
 *Success Response (200 OK):*
 ```json
 {
-  "unilateral_bias_detected": true,
-  "missing_protections": [
-    {
-      "protection_type": "Severability",
-      "description": "If one clause is found illegal, the rest of the contract should still stand. This contract lacks this standard protection.",
-      "suggested_addition": "If any provision of this Agreement is held to be unenforceable, the remaining provisions will remain in full force."
-    }
-  ]
+  "answer": "According to Section 8.2 of your lease, the landlord must provide at least 24 hours written notice before entering the premises, except in cases of emergency."
 }
 ```
 
-## 5. Attorney Dossier Export
-
-Compiles the risk heatmap, simplified text, and missing protections into a structured JSON/PDF intake brief for export or direct sharing with professional legal counsel.
-
-**`POST /api/v1/export/dossier`**
-
-*Request Headers:* `Content-Type: application/json`
-
-*Request Body:*
-```json
-{
-  "document_id": "doc_123abc",
-  "analysis_id": "analysis_987xyz",
-  "include_counter_drafts": true
-}
-```
-
-*Success Response (200 OK):*
-```json
-{
-  "dossier_url": "https://api.legalease-ai.onrender.com/downloads/dossier_123abc.pdf",
-  "executive_summary": "The contract presents a high risk due to uncapped liability and unilateral arbitration.",
-  "suggested_attorney_questions": [
-    "Can we strike the unilateral arbitration clause on page 2?",
-    "Is the non-compete radius of 50 miles legally enforceable in my state?"
-  ],
-  "timeline_obligations": [
-    "Notice of termination required 60 days in advance.",
-    "Security deposit return required within 14 days of vacancy."
-  ]
-}
-```
-
-## 6. Standard Error Responses
+## 5. Standard Error Responses
 
 These error states apply globally to all `/api/v1/` endpoints.
 
@@ -167,19 +131,19 @@ These error states apply globally to all `/api/v1/` endpoints.
 }
 ```
 
-*422 Unprocessable Entity (PyMuPDF Geometry Error)*
+*422 Unprocessable Entity (Validation Error)*
 ```json
 {
-  "error": "GEOMETRY_MATCH_FAILED",
-  "message": "The exact_quote returned by the LLM could not be mathematically located in the document text."
+  "error": "VALIDATION_ERROR",
+  "message": "The provided payload does not conform to the expected schema."
 }
 ```
 
-*429 Too Many Requests (Gemini API Limit)*
+*429 Too Many Requests (Rate Limited)*
 ```json
 {
-  "error": "RATE_LIMITED",
-  "message": "Analysis queue is full due to free-tier limits. Please try again in 60 seconds."
+  "error": "Rate limit exceeded: 5 per 1 minute",
+  "message": "Analysis queue is full due to rate limits. Please try again in 60 seconds."
 }
 ```
 

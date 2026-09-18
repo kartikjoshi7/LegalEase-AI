@@ -1,23 +1,57 @@
 # Changelog
 
+## [1.2.0] - 2026-09-18
+
+### Added
+- Enterprise security headers middleware (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`) injected on every API response via FastAPI ASGI middleware.
+- `test_security.py` with 5 integration tests validating security headers, Cache-Control, CORS, and health endpoint structure.
+- Comprehensive `test_pdf_processor.py` with 6 mocked PyMuPDF unit tests covering text extraction, geometry mapping, fallback search, and graceful degradation.
+- Frontend `test` script in `package.json` for PII scrubber validation.
+- `Cache-Control` headers on the `/api/v1/health` endpoint for response caching.
+
+### Changed
+- Replaced all `print()` debugging statements with Python `logging` module across `main.py`, `llm_engine.py`, and `pdf_processor.py`.
+- Added comprehensive type hints and docstrings to `pdf_processor.py`, `limiter.py`, `health.py`, and `main.py`.
+- Wrapped `LandingHub` page component in `React.memo` for render optimization.
+- README rewritten with required submission headings: "Chosen Vertical", "Approach and Logic", "How the Solution Works", "Assumptions Made", and complete Problem Statement Alignment table (R1-R8).
+
+### Fixed
+- Removed broken `@functools.lru_cache` on health endpoint (Request objects are not hashable). Replaced with proper HTTP `Cache-Control` headers.
+- Fixed rate limiter assertion in `test_limiter.py` to match actual SlowAPI error response format.
+
+---
+
+## [1.1.0] - 2026-09-15
+
+### Added
+- `React.lazy()` and `<Suspense>` code splitting for `Workspace` and `DossierPreview` routes.
+- Semantic ARIA landmarks (`role="banner"`, `role="main"`, `role="region"`) across all pages.
+- `aria-live="polite"` announcements for loading states.
+- Attorney Dossier export with downloadable preparation notes.
+- `robots.txt` and `llms.txt` in public directory.
+- Framer Motion animations for page transitions and interactive elements.
+
+### Changed
+- Upgraded Gemini model from `gemini-2.5-flash-lite` to `gemini-2.5-flash` for improved analysis quality.
+- Optimized PDF viewer and risk panel components with `React.memo`.
+
+---
+
+## [1.0.0] - 2026-09-14
+
+### Added
+- Core risk analysis engine with PyMuPDF geometry mapping.
+- Zero-knowledge PII scrubbing (client-side regex redaction).
+- Contextual Q&A endpoint grounded in uploaded document text.
+- Clause simplification to 8th-grade reading level.
+- SlowAPI rate limiting (5 req/min per IP).
+- Keep-alive heartbeat to prevent Render cold starts.
+- Vercel + Render deployment pipeline.
+
+---
+
 ## [0.1.0] - 2026-09-13
 
 ### Added
-- Initialized Architecture Constitution for the Hack2skill PromptWars Virtual (Exclusive Edition) submission.
-- Created `PROJECT_SPEC.md` defining LegalEase AI as a zero-cost, high-accuracy legal document auditor.
-- Created `ARCHITECTURE.md` locking in React (Vercel), FastAPI (Render), and Gemini 2.5 Flash-Lite.
-- Created `REQUIREMENTS.md` mapped directly to the Hack2skill AI Evaluator rubric.
-- Created `DEVELOPMENT_RULES.md` to prevent AI-induced scope creep and repository bloat.
-- Created `DATA_MODEL.md` enforcing Pydantic schemas for LLM structured outputs.
-- Created `API_SPEC.md` detailing all frontend-backend REST contracts.
-- Created `SECURITY.md` establishing zero-knowledge ingestion constraints.
-- Created `TESTING.md` defining mandatory pre-commit checks for the 10MB repository limit and accessibility requirements.
-
-### Changed
-- None (Initial Release).
-
-### Fixed
-- None (Initial Release).
-
-### Breaking Changes
-- None (Initial Release).
+- Initialized Architecture Constitution for the PromptWars submission.
+- Created `PROJECT_SPEC.md`, `ARCHITECTURE.md`, `REQUIREMENTS.md`, `DEVELOPMENT_RULES.md`, `DATA_MODEL.md`, `API_SPEC.md`, `SECURITY.md`, and `TESTING.md`.

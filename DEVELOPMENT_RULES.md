@@ -16,12 +16,12 @@ This project (`LegalEase AI`) is built for a strict evaluation environment (Hack
 ## 3. Modification Rules
 
 ### LLM Integration (Gemini API)
-- **Always use `response_schema`:** All Gemini 2.5 Flash-Lite calls MUST use Pydantic-enforced `response_schema` parameters. Do not rely on plain-text prompt engineering for JSON formatting.
+- **Always use `response_schema`:** All Gemini 2.5 Flash calls MUST use Pydantic-enforced `response_schema` parameters. Do not rely on plain-text prompt engineering for JSON formatting.
 - **Prompt Isolation:** Store system prompts in dedicated `.txt` or `.py` constant files. Do not inline massive prompts directly inside routing controllers.
 
 ### PDF & Coordinate Geometry
 - **Use Quads, not Rects:** When extracting coordinates for the frontend PDF highlighter, always use `page.search_for(exact_quote, quads=True)`. Legal documents frequently contain rotated headers or skewed scans; quads provide geometrically honest bounds.
-- **Text over Coordinates:** The LLM's only job is to return the exact string (`exact_quote`) of a risky clause. The FastAPI backend assumes total responsibility for translating that string into frontend bounding boxes. If `page.search_for` fails to find the quote, the API MUST throw a `422 GEOMETRY_MATCH_FAILED` error as defined in `API_SPEC.md`.
+- **Text over Coordinates:** The LLM's only job is to return the exact string (`exact_quote`) of a risky clause. The FastAPI backend assumes total responsibility for translating that string into frontend bounding boxes. If `page.search_for` fails to find the exact quote, the system falls back to a prefix search (first 30 characters). If all matches fail, it returns empty geometry and continues serving the risk analysis — never crashing the request.
 
 ### Security & Privacy
 - **Client-Side Scrubbing First:** Do not modify the frontend text extraction payload without ensuring the regex-based PII scrubber (which masks emails, SSNs, and names) is executed *before* the API request.
