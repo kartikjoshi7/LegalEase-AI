@@ -10,7 +10,7 @@ A zero-cost, high-accuracy legal document auditor and negotiation workbench desi
 
 ## Core Features
 1. **Bilingual Jargon Simplifier & Grounded Q&A:** Deconstructs dense legal text into Plain English with deterministic, zero-hallucination text-anchor highlighting.
-2. **Differential Contract Auditing:** Compares uploaded documents against standard statutory baselines to detect missing consumer protections and hidden obligations.
+2. **Contextual Q&A:** Answers user questions that are strictly grounded in the uploaded document text, preventing hallucinations and off-topic responses.
 3. **Visual Risk Heatmap:** Assigns a Fair Contract Score and flags asymmetrical liabilities (e.g., uncapped indemnification, unilateral arbitration) using precise PyMuPDF document coordinate mapping.
 4. **Counter-Draft Engine:** Auto-generates balanced, market-standard replacement clauses for flagged risks.
 5. **Attorney Dossier Export:** Compiles an executive summary, chronological obligation checklist, and targeted questions to streamline formal legal counsel intake.

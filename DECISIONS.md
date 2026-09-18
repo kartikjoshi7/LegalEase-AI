@@ -15,7 +15,7 @@ The project must be built entirely free without requiring any paid billing accou
 - Managed Pinecone/Weaviate for vector storage (Rejected due to free-tier usage limits and setup complexity).
 
 ### Consequences
-- We must strictly adhere to Gemini's 15 Requests Per Minute limit via rate-limiting.
+- We must implement IP-based rate limiting (5 requests per minute per IP via SlowAPI) to protect Gemini API quotas.
 
 ---
 
@@ -35,7 +35,7 @@ LLMs suffer from severe spatial hallucination when attempting to map text to vis
 - Multimodal LLM prompting asking the model to return bounding boxes based on an image of the PDF page. (Rejected due to unacceptable coordinate drift and resolution scaling issues).
 
 ### Consequences
-- The LLM's output must exactly match the text inside the PDF, character-for-character. If the model paraphrases the quote, the geometry search will fail.
+- The LLM's output must closely match the text inside the PDF. If the model paraphrases the quote, the geometry search falls back to a prefix match (first 30 characters). If all matches fail, the system returns empty geometry and continues serving the analysis — it never crashes.
 
 ---
 

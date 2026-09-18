@@ -11,8 +11,8 @@ The generative AI engine must translate complex legal clauses (e.g., indemnifica
 **REQ-FUNC-003: Deterministic UI Highlighting (Zero-Hallucination)**
 The generative AI must NOT predict or return bounding box coordinates. It must return the `exact_quote` of a flagged clause. The backend must use `PyMuPDF` (`page.search_for(exact_quote)`) to find the precise coordinates and map them to the frontend PDF viewer.
 
-**REQ-FUNC-004: Differential Auditing (Statutory Baseline)**
-The system must compare uploaded contracts against in-memory statutory baselines to identify missing consumer protections and asymmetrical liabilities.
+**REQ-FUNC-004: Contextual Q&A (Answering Questions Based on Provided Legal Documents)**
+The system must answer user questions that are strictly grounded in the uploaded document text. Answers must be scoped to the provided document context to prevent hallucinations and off-topic responses.
 
 **REQ-FUNC-005: Counter-Draft Generation**
 For any clause flagged as highly risky (Severity is High or Critical), the system must generate a balanced, market-standard replacement clause formatted for easy copying.
@@ -40,7 +40,7 @@ No PDF templates, vector databases, or compiled binaries (`node_modules`, `venv`
 The system must not require paid databases or server instances. It must run exclusively on Vercel (Free), Render (Free Web Service), and the Google Gemini API (Free Tier).
 
 **REQ-PERF-002: API Rate Limiting**
-The backend must track Gemini API usage and queue requests to ensure it never exceeds the strict 15 Requests Per Minute (RPM) free-tier limit.
+The backend must implement IP-based rate limiting via SlowAPI token bucket to protect the Gemini API quota (5 requests per minute per IP).
 
 **REQ-PERF-003: Cold-Start Mitigation (Keep-Alive)**
 The React frontend must ping a dedicated `/api/v1/health` endpoint on the Render backend every 5 minutes to prevent the container from sleeping, ensuring the AI Evaluator does not encounter a 50-second timeout error.
