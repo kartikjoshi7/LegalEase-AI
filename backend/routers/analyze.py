@@ -96,7 +96,7 @@ async def analyze_risk(
         # Guardrail: Enforce exact quote validation (Hallucination Defense)
         if clause.exact_quote not in document_text:
             logger.warning(f"Hallucinated quote detected and rejected: {clause.exact_quote}")
-            raise HTTPException(status_code=422, detail="UNPROCESSABLE_ENTITY: HALLUCINATED_QUOTE")
+            continue
             
         try:
             geometry = await run_in_threadpool(_run_geometry_matching, clause.exact_quote)

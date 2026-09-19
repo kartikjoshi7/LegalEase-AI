@@ -114,9 +114,10 @@ async def test_backend_rejects_hallucinated_quotes() -> None:
     
     async with AsyncClient(transport=ASGITransport(app=app, client=("127.0.0.102", 123)), base_url="http://test") as ac:
         response = await ac.post("/api/v1/analyze/risk", data=data, files=files)
-        
-    assert response.status_code == 422
-    assert "HALLUCINATED_QUOTE" in response.text
+
+    # We recently updated the backend to gracefully skip hallucinated quotes instead of returning a 422
+    assert response.status_code == 200
+    assert len(response.json()["flagged_clauses"]) == 0
 
 
 def test_xml_sanitization() -> None:

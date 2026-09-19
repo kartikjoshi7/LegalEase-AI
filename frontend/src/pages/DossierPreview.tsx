@@ -9,12 +9,12 @@ export default function DossierPreview() {
 
   // Guardrail
   useEffect(() => {
-    if (!pdfFile || !riskData) {
+    if (!riskData) {
       navigate('/');
     }
-  }, [pdfFile, riskData, navigate]);
+  }, [riskData, navigate]);
 
-  if (!pdfFile || !riskData) return null;
+  if (!riskData) return null;
 
   const handleDownload = () => {
     // Leverage the browser's native print-to-PDF engine
@@ -52,7 +52,7 @@ export default function DossierPreview() {
             <h1 className="text-4xl font-black text-slate-900 tracking-tight">LegalEase AI</h1>
           </div>
           <h2 className="text-2xl font-bold text-slate-700">Attorney Intake Dossier</h2>
-          <p className="text-slate-500 mt-2 font-medium">Document ID: <span className="font-mono text-slate-700 bg-slate-100 px-2 py-0.5 rounded">{pdfFile.name}</span></p>
+          <p className="text-slate-500 mt-2 font-medium">Document ID: <span className="font-mono text-slate-700 bg-slate-100 px-2 py-0.5 rounded">{pdfFile?.name ?? 'Restored Session'}</span></p>
           
           <div className="mt-8 flex items-center gap-6">
             <div className="bg-slate-50 px-5 py-3 rounded-xl border border-slate-200">

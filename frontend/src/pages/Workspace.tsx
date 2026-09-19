@@ -5,18 +5,18 @@ import PDFViewer from '../components/PDFViewer';
 import RiskPanel from '../components/RiskPanel';
 
 export default function Workspace() {
-  const { pdfFile, riskData, isLoading } = useAppContext();
+  const { pdfFile, riskData, isLoading, error } = useAppContext();
   const navigate = useNavigate();
   const [hoveredClauseId, setHoveredClauseId] = useState<string | null>(null);
 
-  // Guardrail
+  // Guardrail: Only redirect if there's truly nothing to show
   useEffect(() => {
-    if (!pdfFile && !isLoading) {
+    if (!pdfFile && !riskData && !isLoading && !error) {
       navigate('/');
     }
-  }, [pdfFile, isLoading, navigate]);
+  }, [pdfFile, riskData, isLoading, error, navigate]);
 
-  if (!pdfFile && !isLoading) return null;
+  if (!pdfFile && !riskData && !isLoading && !error) return null;
 
   return (
     <div role="region" aria-label="Analysis Workspace" className="flex-1 flex flex-col lg:flex-row h-full overflow-hidden p-2 gap-2 relative">

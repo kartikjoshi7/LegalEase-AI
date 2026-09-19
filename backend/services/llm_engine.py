@@ -34,8 +34,8 @@ def _generate_with_retry(gemini_client, model: str, contents: str, config: types
     # Ensure the requested model is first, then fall back to others available in Google AI Studio
     fallback_chain = [
         model,
-        'gemini-3.5-flash',
-        'gemini-3.8-flash'
+        'gemini-3.5-flash-lite',
+        'gemini-3.1-flash-lite'
     ]
     
     for attempt in range(max_retries):
@@ -52,11 +52,18 @@ def _generate_with_retry(gemini_client, model: str, contents: str, config: types
             error_msg = str(e)
             is_rate_limit = "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg or "quota" in error_msg.lower()
             is_unavailable = "503" in error_msg or "UNAVAILABLE" in error_msg
+            is_not_found = "404" in error_msg or "NOT_FOUND" in error_msg
             
-            if is_rate_limit or is_unavailable:
+            if is_rate_limit or is_unavailable or is_not_found:
                 if attempt < max_retries - 1:
                     next_model = fallback_chain[(attempt + 1) % len(fallback_chain)]
-                    reason = "rate limit" if is_rate_limit else "capacity limit (503)"
+                    
+                    if is_rate_limit:
+                        reason = "rate limit"
+                    elif is_unavailable:
+                        reason = "capacity limit (503)"
+                    else:
+                        reason = "not found (404)"
                     
                     # Fallback instantly if jumping to a new model; only backoff if we've exhausted all models once
                     delay = 1.0 if attempt < len(fallback_chain) else 5.0
