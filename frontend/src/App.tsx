@@ -4,8 +4,8 @@ import { AnimatePresence, motion } from 'framer-motion';
 import KeepAlive from './components/KeepAlive';
 import LandingHub from './pages/LandingHub';
 
-const Workspace = lazy(() => import('./pages/Workspace'));
-const DossierPreview = lazy(() => import('./pages/DossierPreview'));
+import Workspace from './pages/Workspace';
+import DossierPreview from './pages/DossierPreview';
 import { Menu, X, UploadCloud } from 'lucide-react';
 
 function App() {
@@ -48,14 +48,8 @@ function App() {
         </button>
       </header>
 
-      {/* Main Workspace Router */}
       <main role="main" className="flex-1 flex overflow-hidden print:overflow-visible print:block relative">
-        <Suspense fallback={
-          <div className="flex-1 flex items-center justify-center p-8 bg-slate-50/50">
-            <div className="w-10 h-10 border-4 border-slate-200 border-t-blue-600 rounded-full animate-spin"></div>
-          </div>
-        }>
-          <AnimatePresence mode="wait">
+        <AnimatePresence mode="wait">
             <Routes location={location} key={location.pathname}>
               <Route path="/" element={
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }} className="flex flex-col flex-1 w-full h-full">
@@ -74,7 +68,6 @@ function App() {
               } />
             </Routes>
           </AnimatePresence>
-        </Suspense>
       </main>
     </div>
   );
