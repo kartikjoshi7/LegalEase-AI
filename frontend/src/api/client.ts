@@ -8,7 +8,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/
 
 export const apiClient = {
   async get(endpoint: string) {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`);
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, { credentials: 'omit' });
     if (!response.ok) {
       throw new Error(`API Error: ${response.statusText}`);
     }
@@ -18,6 +18,7 @@ export const apiClient = {
   simplifyJargon: async (documentId: string, text: string) => {
     const response = await fetch(`${API_BASE_URL}/analyze/simplify`, {
       method: 'POST',
+      credentials: 'omit',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ document_id: documentId, target_text: text }),
     });
@@ -32,6 +33,7 @@ export const apiClient = {
   askQuestion: async (documentId: string, documentText: string, question: string) => {
     const response = await fetch(`${API_BASE_URL}/analyze/ask`, {
       method: 'POST',
+      credentials: 'omit',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ document_id: documentId, document_text: documentText, question }),
     });
@@ -48,6 +50,7 @@ export const apiClient = {
   async post(endpoint: string, body: Record<string, unknown>) {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'POST',
+      credentials: 'omit',
       headers: {
         'Content-Type': 'application/json',
       },
@@ -65,6 +68,7 @@ export const apiClient = {
   async postFormData(endpoint: string, formData: FormData) {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'POST',
+      credentials: 'omit',
       body: formData,
     });
 

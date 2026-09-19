@@ -26,7 +26,7 @@ logger = logging.getLogger("legalease")
 app = FastAPI(
     title="LegalEase AI API",
     description="Backend API for LegalEase AI — An AI-powered legal document auditor that simplifies complex legal documents, highlights important clauses and risks, answers questions based on provided legal documents, and generates actionable outputs to help users prepare for legal professionals.",
-    version="1.0.0"
+    version="1.3.0"
 )
 
 # ============================================================

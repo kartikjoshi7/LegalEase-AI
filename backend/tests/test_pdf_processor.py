@@ -117,3 +117,27 @@ class TestFindExactQuoteCoordinates:
 
         assert result["page_number"] == 1
         assert result["quads"] == []
+
+class TestPDFExceptions:
+    @patch("services.pdf_processor.fitz.open")
+    def test_file_data_error(self, mock_fitz_open):
+        import fitz
+        mock_fitz_open.side_effect = fitz.FileDataError("corrupted file")
+        
+        from fastapi import HTTPException
+        with pytest.raises(HTTPException) as exc:
+            extract_text_from_pdf(b"corrupted bytes")
+            
+        assert exc.value.status_code == 400
+        assert "INVALID_PDF_FORMAT" in exc.value.detail
+
+    @patch("services.pdf_processor.fitz.open")
+    def test_generic_exception(self, mock_fitz_open):
+        mock_fitz_open.side_effect = Exception("Unknown error")
+        
+        from fastapi import HTTPException
+        with pytest.raises(HTTPException) as exc:
+            extract_text_from_pdf(b"some bytes")
+            
+        assert exc.value.status_code == 500
+        assert "PDF_PROCESSING_ERROR" in exc.value.detail

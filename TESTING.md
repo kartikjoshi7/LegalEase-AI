@@ -46,6 +46,17 @@ To preserve the Gemini API free-tier quota, **all automated integration tests MU
   - Validates the health endpoint returns the expected JSON structure.
 - **Hallucination Defense (`analyze.py` guardrail):**
   - Validates that any `exact_quote` returned by the LLM which does not exist as an identical substring of the original `document_text` is silently discarded from the `flagged_clauses` response array.
+- **Backend Test Suite Layout (`backend/tests/`):**
+  ```
+  backend/
+  └── tests/
+      ├── test_api.py          # API endpoints (Rate limits, Input validation, Error handling)
+      ├── test_pdf_processor.py # PDF extraction logic, boundary cases, corrupt files
+      ├── test_limiter.py       # Specific rate limiter functionality
+      ├── test_security.py      # PII scrubbing, Global Exception Handlers
+      ├── test_llm_engine.py    # Fallback chains, Sanitization, API resilience
+      └── test_live.py          # [Manual] End-to-end integration with actual Gemini API and validates the response conforms to the `RiskAnalysisLLMOutput` Pydantic schema.
+  ```
 - **Live Gemini Integration (`test_live.py`):**
   - Gated behind `@pytest.mark.live` to prevent accidental quota consumption during automated CI runs.
   - Sends real document text to the Gemini API and validates the response conforms to the `RiskAnalysisLLMOutput` Pydantic schema.

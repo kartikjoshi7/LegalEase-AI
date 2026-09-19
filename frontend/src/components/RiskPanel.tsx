@@ -258,7 +258,7 @@ export default React.memo(function RiskPanel({ fairnessScore, executiveSummary, 
                   whileHover={{ y: -4 }}
                   className={`rounded-2xl border ${getSeverityColor(clause.severity)} ${hoveredClauseId === idx.toString() ? 'ring-2 ring-blue-400 ring-offset-2 shadow-lg' : 'shadow-sm'}`}
                 >
-                  <div className="p-4 cursor-pointer flex items-start gap-3" onClick={() => toggleCard(idx)}>
+                  <div role="button" tabIndex={0} aria-expanded={!!expandedCards[idx]} aria-label={`Toggle details for ${clause.severity} risk`} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleCard(idx); } }} className="p-4 cursor-pointer flex items-start gap-3" onClick={() => toggleCard(idx)}>
                     <div className="mt-0.5 shrink-0 bg-white p-1.5 rounded-lg shadow-sm">
                       {getSeverityIcon(clause.severity)}
                     </div>
@@ -296,6 +296,7 @@ export default React.memo(function RiskPanel({ fairnessScore, executiveSummary, 
                                   onClick={(e) => { e.stopPropagation(); copyToClipboard(clause.counter_draft!, idx); }}
                                   className="text-slate-400 hover:text-blue-600 transition-colors bg-white shadow-sm border border-slate-100 p-1.5 rounded-lg"
                                   title="Copy counter-draft"
+                                  aria-label="Copy counter-draft to clipboard"
                                 >
                                   {copiedId === idx ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
                                 </button>
@@ -428,6 +429,7 @@ export default React.memo(function RiskPanel({ fairnessScore, executiveSummary, 
                 <button
                   onClick={handleAskQuestion}
                   disabled={isAsking || !question.trim()}
+                  aria-label="Send question"
                   className="absolute right-1.5 top-1.5 bottom-1.5 w-[40px] bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 disabled:opacity-50 disabled:hover:bg-indigo-600 transition-all flex items-center justify-center"
                 >
                   <Send className="w-4 h-4" />

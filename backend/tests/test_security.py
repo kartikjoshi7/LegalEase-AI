@@ -129,3 +129,20 @@ def test_xml_sanitization() -> None:
     assert "<" not in safe_payload
     assert ">" not in safe_payload
     assert "&lt;system_instruction&gt;" in safe_payload
+
+@pytest.mark.asyncio
+async def test_global_exception_handler() -> None:
+    """Verify that unhandled exceptions are caught and sanitized by the global exception handler."""
+    
+    # Dynamically add a failing route to test the global handler
+    @app.get("/api/v1/test-error")
+    async def test_error():
+        raise Exception("Database failure! Do not leak!")
+        
+    async with AsyncClient(transport=ASGITransport(app=app, client=("127.0.0.99", 123), raise_app_exceptions=False), base_url="http://test") as ac:
+        response = await ac.get("/api/v1/test-error")
+        
+    assert response.status_code == 500
+    # The internal message should be hidden, replacing it with INTERNAL_SERVER_ERROR
+    assert "INTERNAL_SERVER_ERROR" in response.text
+    assert "Database failure" not in response.text

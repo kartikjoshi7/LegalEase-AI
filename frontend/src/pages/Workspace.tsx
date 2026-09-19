@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import PDFViewer from '../components/PDFViewer';
 import RiskPanel from '../components/RiskPanel';
 
-export default function Workspace() {
+const Workspace = () => {
   const { pdfFile, riskData, isLoading, error } = useAppContext();
   const navigate = useNavigate();
   const [hoveredClauseId, setHoveredClauseId] = useState<string | null>(null);
@@ -55,4 +55,6 @@ export default function Workspace() {
       </div>
     </div>
   );
-}
+};
+
+export default React.memo(Workspace);

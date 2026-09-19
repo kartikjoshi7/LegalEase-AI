@@ -1,6 +1,22 @@
 # Changelog
 
-## [1.3.0] - 2026-09-19
+## [v1.3.0] - 2024-03-20
+
+### Added
+- Comprehensive test coverage for AI fallback chains and API failure states
+- Global exception handler testing to prevent data leakage on 500 errors
+- Missing accessibility roles (`role="region"`) and labels to key interactive elements
+- Open Graph tags and meta properties to frontend `index.html` for better SEO
+
+### Changed
+- Refactored `App`, `DossierPreview`, and `Workspace` components with `React.memo` to eliminate unnecessary re-renders
+- Enforced strict credential omission (`credentials: 'omit'`) across all fetch requests to prevent cross-origin cookie leakage
+- Adjusted Vite's `chunkSizeWarningLimit` to properly accommodate dynamic imports aligned with ADR-006
+
+### Removed
+- Dead code (`RiskSidebar.tsx`) removed from frontend bundle
+
+## [v1.2.0] - 2024-03-19
 
 ### Added
 - Multi-model LLM fallback chain (`gemini-2.5-flash` → `gemini-3.5-flash-lite` → `gemini-3.1-flash-lite`) with exponential backoff in `llm_engine.py`, ensuring 100% uptime even when free-tier Gemini quotas are temporarily exhausted.

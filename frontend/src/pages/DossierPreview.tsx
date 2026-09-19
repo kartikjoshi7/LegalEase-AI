@@ -1,9 +1,9 @@
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { ArrowLeft, Download, ShieldCheck } from 'lucide-react';
 
-export default function DossierPreview() {
+const DossierPreview = () => {
   const { pdfFile, riskData } = useAppContext();
   const navigate = useNavigate();
 
@@ -22,21 +22,23 @@ export default function DossierPreview() {
   };
 
   return (
-    <div className="w-full h-full bg-slate-50 print:bg-white overflow-y-auto print:overflow-visible relative">
+    <div role="region" aria-label="Dossier Preview" className="w-full h-full bg-slate-50 print:bg-white overflow-y-auto print:overflow-visible relative">
       
       {/* Floating Action Bar */}
       <div className="print:hidden sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200 px-8 py-4 flex items-center justify-between shadow-sm">
         <button 
           onClick={() => navigate('/workspace/latest')}
+          aria-label="Back to Workspace"
           className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors font-medium"
         >
-          <ArrowLeft className="w-5 h-5" /> Back to Workspace
+          <ArrowLeft className="w-5 h-5" aria-hidden="true" /> Back to Workspace
         </button>
         <button 
           onClick={handleDownload}
+          aria-label="Download PDF Dossier"
           className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-colors shadow-lg shadow-blue-500/20"
         >
-          <Download className="w-4 h-4" /> Download PDF Dossier
+          <Download className="w-4 h-4" aria-hidden="true" /> Download PDF Dossier
         </button>
       </div>
 
@@ -116,4 +118,6 @@ export default function DossierPreview() {
       </div>
     </div>
   );
-}
+};
+
+export default React.memo(DossierPreview);
