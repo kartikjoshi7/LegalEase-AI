@@ -71,6 +71,8 @@ The core evaluation engine. Identifies asymmetrical liabilities and maps them to
 }
 ```
 
+*Hallucination Defense:* The `flagged_clauses` array is post-processed by the backend before delivery. Any clause whose `exact_quote` is not found as an identical substring of the original `document_text` is silently discarded. This means the response may contain fewer clauses than the LLM originally generated — this is by design, not an error.
+
 ## 3. Clause Simplification (Simplifying Complex Legal Documents)
 
 Translates dense legal jargon into an 8th-grade reading level. Triggered when a user selects a specific clause in the UI they want to understand.

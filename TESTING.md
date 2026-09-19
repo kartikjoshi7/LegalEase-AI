@@ -44,6 +44,12 @@ To preserve the Gemini API free-tier quota, **all automated integration tests MU
   - Validates that security headers are present even on `404` error responses.
   - Confirms the health endpoint includes `Cache-Control` headers for efficiency.
   - Validates the health endpoint returns the expected JSON structure.
+- **Hallucination Defense (`analyze.py` guardrail):**
+  - Validates that any `exact_quote` returned by the LLM which does not exist as an identical substring of the original `document_text` is silently discarded from the `flagged_clauses` response array.
+- **Live Gemini Integration (`test_live.py`):**
+  - Gated behind `@pytest.mark.live` to prevent accidental quota consumption during automated CI runs.
+  - Sends real document text to the Gemini API and validates the response conforms to the `RiskAnalysisLLMOutput` Pydantic schema.
+  - Run manually via `make test-live` or `pytest -m live -v`.
 
 ---
 
@@ -69,6 +75,7 @@ Verify the frontend `setInterval` successfully pings `GET /api/v1/health` every 
 ## 5. Required Checklist Before Merging Changes
 
 - [ ] `npm test` passes for all frontend components and PII scrubbers.
+- [ ] `npm run build` completes with zero TypeScript errors (exit code 0).
 - [ ] `pytest` passes for all backend routes, security headers, and PyMuPDF logic.
 - [ ] Linter (`flake8`/`black` and `oxlint`) reports zero warnings or errors.
 - [ ] No new `.env` variables or API keys have been committed.

@@ -74,3 +74,43 @@ Render's free web services spin down after 15 minutes of inactivity. If the auto
 
 ### Consequences
 - Slightly inflated backend log volume due to regular health checks.
+
+---
+
+## ADR-005: Multi-Model LLM Fallback Chain
+
+**Date:** 2026-09-19
+
+### Decision
+Implement a tiered model fallback chain in `llm_engine.py`: `gemini-2.5-flash` (primary) → `gemini-3.5-flash-lite` → `gemini-3.1-flash-lite`. When the primary model returns a 429 (RESOURCE_EXHAUSTED), 503 (UNAVAILABLE), or 404 (NOT_FOUND) error, the system automatically retries with the next model in the chain after a brief delay (1 second for model switches, 5 seconds for full-chain retries). Maximum 6 retry attempts.
+
+### Reason
+The Google Gemini free-tier quota is shared across all users and can be exhausted rapidly during hackathon demo sessions or automated evaluator runs. A single-model approach would cause the entire analysis to fail with a 502 error, creating a poor user experience during the live pitch. The fallback chain ensures the system always returns a result, even if the primary model is temporarily unavailable.
+
+### Alternatives Considered
+- Queueing requests and retrying only the primary model after a longer backoff (Rejected because the evaluator may timeout waiting for the queue to drain).
+- Switching entirely to a lite model (Rejected because `gemini-2.5-flash` produces significantly higher quality legal analysis and should be used when available).
+
+### Consequences
+- Lite model responses may have slightly lower analysis quality than the primary model. This is acceptable as a degraded-but-functional fallback.
+- The `_generate_with_retry` function is synchronous (`time.sleep`), which blocks the event loop briefly during retries. This is acceptable given the single-threaded hackathon deployment.
+
+---
+
+## ADR-006: Removal of React.lazy/Suspense for Edge CDN Stability
+
+**Date:** 2026-09-19
+
+### Decision
+Replace `React.lazy()` and `<Suspense>` dynamic imports for `Workspace` and `DossierPreview` with static imports in `App.tsx`. All route components are bundled into the main JavaScript chunk.
+
+### Reason
+When deployed to Vercel's edge CDN, the combination of `React.lazy()` chunk loading and Framer Motion's `AnimatePresence` exit animations caused a critical blank-screen bug. During navigation from the landing page to the workspace, the `Suspense` fallback would render while the chunk was fetched, but `AnimatePresence` would apply `opacity: 0` to the incoming component during its exit animation of the previous route. Once the chunk loaded, Framer Motion lost track of the animation state and left the Workspace permanently invisible — resulting in a fully rendered header with a completely blank main content area.
+
+### Alternatives Considered
+- Configuring Vite's chunk splitting to inline the Workspace route into the main bundle while keeping other routes lazy (Rejected as overly complex for minimal bundle size savings).
+- Wrapping `AnimatePresence` outside of `Suspense` (Tested and still caused timing issues with Vercel's CDN chunk caching).
+
+### Consequences
+- The initial JavaScript bundle is slightly larger (~1.4MB gzipped: 442KB). This is acceptable for a single-page application targeting desktop users on modern broadband connections.
+- Deterministic rendering is guaranteed — no race conditions between chunk loading and animation state.

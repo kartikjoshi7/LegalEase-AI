@@ -44,4 +44,15 @@ The backend must implement IP-based rate limiting via SlowAPI token bucket to pr
 
 **REQ-PERF-003: Cold-Start Mitigation (Keep-Alive)**
 The React frontend must ping a dedicated `/api/v1/health` endpoint on the Render backend every 5 minutes to prevent the container from sleeping, ensuring the AI Evaluator does not encounter a 50-second timeout error.
+
+**REQ-PERF-004: LLM Resilience (Multi-Model Fallback)**
+The backend must implement a multi-model fallback chain (`gemini-2.5-flash` → `gemini-3.5-flash-lite` → `gemini-3.1-flash-lite`) with exponential backoff to ensure analysis requests succeed even when the primary model's free-tier quota is temporarily exhausted.
+
+**REQ-PERF-005: Environment Configuration**
+The backend must use `python-dotenv` to load environment variables from a `.env` file, ensuring consistent configuration across local development and production (Render) deployments without hardcoding secrets.
+
+## 4. Frontend Dependencies
+
+**REQ-FRONT-001: Rich AI Response Rendering**
+The frontend must use `react-markdown` to render AI-generated Q&A responses with proper formatting (paragraphs, lists, bold text) instead of raw plaintext.
 

@@ -68,9 +68,10 @@ Legal agreements can contain embedded adversarial text (e.g., `"Ignore previous 
     </document_under_review>
 
 ### Schema-Constrained Generation
-- All requests to Gemini 2.5 Flash utilize Google's native `response_schema` bound to Pydantic models.
-- If an injected payload attempts to break the response format, the parser fails immediately at validation time with a `422 Unprocessable Entity`, dropping the payload before frontend consumption.
-- Exact quote validation: The backend asserts that every `exact_quote` returned by the model is an identical substring of the input document before executing coordinate mapping.
+- All requests to Gemini utilize the `response_mime_type="application/json"` parameter bound to Pydantic models.
+- If an injected payload attempts to break the response format, the parser fails immediately at validation time with a `502 Bad Gateway`, dropping the payload before frontend consumption.
+- Exact quote validation: The backend asserts that every `exact_quote` returned by the model is an identical substring of the input document before executing coordinate mapping. Hallucinated quotes are silently discarded (`analyze.py` lines 97-99).
+- XML entity escaping: All document text is sanitized via `_sanitize_xml()` in `llm_engine.py` to escape embedded `<` and `>` characters before prompt construction, preventing adversarial HTML/XML tags from manipulating the prompt structure.
 
 ---
 
@@ -86,7 +87,8 @@ Cross-Origin Resource Sharing is strictly pinned to authorized origins in `main.
 
 ### Rate Limiting & Resource Protection
 - **Gemini Quota Protection:** The backend implements an IP-based token bucket limiter (`slowapi`) restricting users to 5 analysis requests per minute per IP.
-- **Payload Limits:** Request bodies containing document text are restricted to a maximum size of 5MB to prevent memory exhaustion and DoS attacks.
+- **Payload Limits:** Request bodies containing document text are restricted via `max_length` constraints in Pydantic form fields (`document_text: max_length=1000000`, `user_context: max_length=10000`) to prevent memory exhaustion and DoS attacks.
+- **LLM Fallback Chain:** A multi-model fallback chain (`gemini-2.5-flash` → `gemini-3.5-flash-lite` → `gemini-3.1-flash-lite`) ensures that upstream Gemini API exhaustion (429 errors) does not cascade into a total service outage, functioning as a secondary DoS defense.
 
 ---
 
@@ -98,7 +100,8 @@ Cross-Origin Resource Sharing is strictly pinned to authorized origins in `main.
 
 ## 8. Dependency Auditing & CI/CD Security Verification
 
-- **Backend Audit:** Run `pip-audit` to ensure zero critical or high Common Vulnerabilities and Exposures (CVEs) exist in FastAPI or PyMuPDF dependencies.
+- **Backend Audit:** Run `pip-audit` to ensure zero critical or high Common Vulnerabilities and Exposures (CVEs) exist in FastAPI or PyMuPDF dependencies. As of v1.3.0, all backend dependencies are strictly pinned and audited with zero known CVEs:
+  - `fastapi==0.141.1`, `pillow>=12.3.0`, `pydantic>=2.12.5`, `pymupdf==1.24.4`, `uvicorn==0.30.1`, `slowapi==0.1.9`, `python-dotenv==1.0.1`
 - **Frontend Audit:** Run `npm audit --omit=dev` to verify zero vulnerabilities in client-side packages.
 - **Repository Size Check:** Enforce automated pre-commit hook checking that total tracked repository files remain well below the 10MB threshold:
     git count-objects -vH

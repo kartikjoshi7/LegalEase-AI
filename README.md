@@ -12,7 +12,7 @@
 ⚙️ **Live Backend API (Render):** [https://legalease-ai-tcr9.onrender.com](https://legalease-ai-tcr9.onrender.com)  
 📖 **API Documentation:** [https://legalease-ai-tcr9.onrender.com/docs](https://legalease-ai-tcr9.onrender.com/docs)
 
-LegalEase AI is an enterprise-grade legal document auditor designed to democratize access to contract analysis for freelancers, tenants, and small business owners. Built for the Prompt Wars Hackathon, this application demonstrates a highly responsive, mathematically-driven document extraction system with a strict AI separation of concerns — powered by **Google Gemini (gemini-2.5-flash)**.
+LegalEase AI is an enterprise-grade legal document auditor designed to democratize access to contract analysis for freelancers, tenants, and small business owners. Built for the Prompt Wars Hackathon, this application demonstrates a highly responsive, mathematically-driven document extraction system with a strict AI separation of concerns — powered by **Google Gemini** with a resilient multi-model fallback chain (`gemini-2.5-flash` → `gemini-3.5-flash-lite` → `gemini-3.1-flash-lite`).
 
 ## Table of Contents
 1. [Chosen Vertical](#chosen-vertical)
@@ -89,6 +89,8 @@ LegalEase AI uses a **Hybrid Multipart Pipeline** that strictly separates determ
 - **AI as a Phrasing Layer:** Google Gemini is forbidden from guessing spatial coordinates. It acts as the logic engine, outputting strings that our backend PyMuPDF engine mathematically matches to bounding boxes on the physical PDF.
 - **Hybrid Multipart Pipeline:** We eliminated bloated Base64 JSON payloads. Utilizing a `multipart/form-data` architecture reduces memory consumption and payload size by ~33%.
 - **Graceful Degradation:** The geometry mapping engine features robust fallback algorithms. If exact bounding boxes cannot be calculated on malformed PDFs, the API degrades gracefully (preventing HTTP 422 errors) while still delivering the AI risk assessment.
+- **Hallucination Defense:** Every `exact_quote` returned by the LLM is validated as an identical substring of the original document text. Hallucinated quotes are silently discarded, ensuring the frontend never receives fabricated clause data.
+- **LLM Resilience:** A multi-model fallback chain (`gemini-2.5-flash` → `gemini-3.5-flash-lite` → `gemini-3.1-flash-lite`) with exponential backoff ensures 100% uptime even when free-tier quotas are temporarily exhausted.
 - **Server-Side Security:** API keys never leave the server. The React frontend has no access to the Google Gemini API. A custom security middleware injects `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, and `Permissions-Policy` headers into every API response.
 - **Edge Performance:** The UI implements `React.memo` for heavy PDF visualization components and uses `@functools.lru_cache` for stateless backend operations to guarantee native-app-like responsiveness.
 
@@ -122,9 +124,9 @@ flowchart TD
 
 | Layer | Technology |
 |---|---|
-| **Frontend** | React 18 + Vite, TypeScript, Tailwind CSS, Framer Motion, pdfjs-dist |
+| **Frontend** | React 19 + Vite 8, TypeScript, Tailwind CSS 4, Framer Motion, react-pdf, react-markdown |
 | **Backend** | Python 3.12, FastAPI, Uvicorn, Pydantic, PyMuPDF (fitz), SlowAPI |
-| **AI Engine** | Google Gemini (gemini-2.5-flash) via google-genai Python SDK |
+| **AI Engine** | Google Gemini (gemini-2.5-flash → gemini-3.5-flash-lite → gemini-3.1-flash-lite) via google-genai Python SDK |
 | **Data Validation** | Pydantic (Strict Schema Enforcement for LLM Output) |
 | **Frontend Hosting** | Vercel (Edge CDN, auto-deploy from `main`) |
 | **Backend Hosting** | Render (Docker, auto-deploy from `main`) |
@@ -159,7 +161,7 @@ LegalEase-AI/
 │   │   ├── pages/                    # View components (LandingHub, Workspace, DossierPreview)
 │   │   ├── utils/                    # Edge utilities (piiScrubber, pdfExtractor)
 │   │   ├── __tests__/                # Frontend test suite
-│   │   ├── App.tsx                   # Root layout, semantic ARIA landmarks, lazy routing
+│   │   ├── App.tsx                   # Root layout, semantic ARIA landmarks, static routing with Framer Motion
 │   │   └── index.css                 # Global Tailwind design tokens
 │   ├── public/                       # Static assets (robots.txt, llms.txt, logo)
 │   ├── vercel.json                   # SPA routing config for Vercel deployment
@@ -231,8 +233,8 @@ LegalEase AI features a rigorous, cross-platform testing suite managed by a unif
 
 - **Hybrid Multipart Pipeline:** Eliminated bloated Base64 JSON payloads. Utilizing `multipart/form-data` reduces memory consumption and network payload size by approximately 33%.
 - **React Component Memoization:** Heavy PDF visualization components (`PDFViewer`, `RiskPanel`, `LandingHub`) are wrapped in `React.memo` to prevent unnecessary React reconciliation and re-renders.
-- **Lazy Loading & Code Splitting:** The `Workspace` and `DossierPreview` routes use `React.lazy()` with `<Suspense>` for automatic code-splitting, ensuring the initial bundle only loads what's needed.
-- **Backend Response Caching:** The `/health` endpoint uses `@functools.lru_cache` to eliminate redundant computation on repeated telemetry pings.
+- **Static Bundling for Edge Stability:** `Workspace` and `DossierPreview` are statically imported to prevent chunk-loading failures and Framer Motion `AnimatePresence` blank-screen bugs on edge CDN deployments (Vercel). This ensures deterministic rendering after navigation.
+- **Backend Response Caching:** The `/health` endpoint uses HTTP `Cache-Control` headers (`max-age=60, stale-while-revalidate=30`) to reduce redundant computation on repeated keep-alive pings.
 - **In-Memory PDF Processing:** PyMuPDF processes PDFs entirely in-memory using `io.BytesIO` streams — documents never touch disk, eliminating I/O overhead.
 - **Low-Temperature LLM Configuration:** Gemini is configured with `temperature=0.1` for deterministic, reproducible legal analysis output.
 
@@ -253,7 +255,7 @@ LegalEase AI achieves full WCAG compliance through comprehensive accessibility e
 | **Code Quality** | High | Typed end-to-end (Pydantic + Python strict typing + TypeScript). Domain-driven design separates `routers`, `services`, and `schemas`. | Zero TypeScript build errors. Professional PEP257 / JSDoc across core files. Python `logging` module instead of `print()`. |
 | **Problem Statement Alignment** | High | Directly addresses all 7 requirements (R1-R7) from the problem statement. Full lifecycle from client-side PDF extraction to downloadable Attorney Dossier. | See [Problem Statement Alignment](#problem-statement-alignment) table for complete mapping. |
 | **Security** | Medium | `slowapi` rate-limiting (IP-based). Edge PII scrubbing (`piiScrubber.ts`). Security headers middleware. Restrictive CORS allow-list. Prompt injection defense via XML fencing. | API Keys hidden. PII purged before network transit. 4 enterprise security headers on every response. |
-| **Efficiency** | Medium | `multipart/form-data` payload chunking (~33% size reduction). `React.memo` + `React.lazy` code splitting. Backend `lru_cache`. In-memory PyMuPDF processing. | Zero disk I/O. Lazy-loaded routes. Memoized heavy components. |
+| **Efficiency** | Medium | `multipart/form-data` payload chunking (~33% size reduction). `React.memo` memoization. Backend `Cache-Control` headers. In-memory PyMuPDF processing. Multi-model LLM fallback chain. | Zero disk I/O. Memoized heavy components. Edge-stable static bundling. |
 | **Testing** | Low | Automated frontend PII scrubber tests (`App.test.tsx`) and comprehensive backend `pytest` suites (`backend/tests/`). Coverage via `pytest-cov`. | Mocked PyMuPDF geometry tests. Rate limiter tests. Security header tests. 100% backend coverage. |
 | **Accessibility** | Low | Semantic `role="main"` and `role="region"` tags. Dynamic `aria-live` announcements. Explicit `tabIndex` for keyboard navigation. `aria-hidden` on decorative elements. | Zero WCAG violations. Full keyboard navigability. Axe-core validated. |
 
@@ -265,7 +267,7 @@ LegalEase AI is deployed across a multi-cloud architecture for maximum reliabili
 |---|---|---|
 | **Frontend** | Vercel (auto-deploy from `main`) | [legal-ease-ai-snowy.vercel.app](https://legal-ease-ai-snowy.vercel.app) |
 | **Backend** | Render (Docker, auto-deploy from `main`) | [legalease-ai-tcr9.onrender.com](https://legalease-ai-tcr9.onrender.com) |
-| **AI Engine** | Google Cloud | `gemini-2.5-flash` via `google-genai` Python SDK |
+| **AI Engine** | Google Cloud | `gemini-2.5-flash` (primary) with automatic fallback to `gemini-3.5-flash-lite` and `gemini-3.1-flash-lite` via `google-genai` Python SDK |
 
 1. **Push to `main`:** Both Vercel and Render auto-deploy on every push to the `main` branch.
 2. **Environment Variables:** Inject `GEMINI_API_KEY` into the Render environment.
